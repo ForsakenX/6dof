@@ -1,0 +1,6 @@
+* Clean up gfx_sdl.c
+
+* Data structures gfx_sdl.c <-> gfx.h ?
+* Level loader function gfx_sdl.c -> gfx.c
+
+* Textures
