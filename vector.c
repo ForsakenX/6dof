@@ -35,43 +35,54 @@ scalar vec_mag(vector *v)
 	return sqrt(vec_mag2(v));
 }
 
-void vec_norm(vector *v)
+void vec_norm(vector *v, vector *v1)
 {
-	scalar mag = vec_mag2(v);
-	if (ABS(mag-1.0f) < 0.000001f)
+	scalar c = vec_mag2(v1);
+	if (c < 0.000001f)
+	{
+		ERROR("trying to normalize (near) null vector (%g, %g, %g)\n"
+			, v1->x, v1->y, v1->z
+		);
+		return;
+	}
+	if (ABS(c-1.0f) < 0.000001f)
 		/* Normalized enough. */
 		return;
-	mag = sqrt(mag);
-	v->x /= mag;
-	v->y /= mag;
-	v->z /= mag;
+	c = (scalar) 1.0f / sqrts(c);
+	v->x = v1->x * c;
+	v->y = v1->y * c;
+	v->z = v1->z * c;
 }
 
-void vec_neg(vector *v)
+void vec_neg(vector *v, vector *v1)
 {
-	v->x = -v->x;
-	v->y = -v->y;
-	v->z = -v->z;
+	v->x = -v1->x;
+	v->y = -v1->y;
+	v->z = -v1->z;
 }
 
 void vec_add(vector *v, vector *v1, vector *v2)
 {
-	vector tmp;
+	v->x = v1->x + v2->x;
+	v->y = v1->y + v2->y;
+	v->z = v1->z + v2->z;
+}
 
-	tmp.x = v1->x + v2->x;
-	tmp.y = v1->y + v2->y;
-	tmp.z = v1->z + v2->z;
+void vec_sub(vector *v, vector *v1, vector *v2)
+{
+	v->x = v1->x - v2->x;
+	v->y = v1->y - v2->y;
+	v->z = v1->z - v2->z;
+}
 
-	*v = tmp;
+scalar vec_dist2(vector *v1, vector *v2)
+{
+	return SQ(v1->x - v2->x) + SQ(v1->y - v2->y) + SQ(v1->z - v2->z);
 }
 
 scalar vec_dist(vector *v1, vector *v2)
 {
-	return sqrts(
-		  SQ(v1->x - v2->x)
-		+ SQ(v1->y - v2->y)
-		+ SQ(v1->z - v2->z)
-	);
+	return sqrts(vec_dist2(v1, v2));
 }
 
 scalar vec_dotprod(vector *v1, vector *v2)
@@ -111,12 +122,73 @@ void vec_rotate(vector *v, quat *q)
 	vecq.z = tmpv.z;
 	vecq.w = 0.0f;
 	q_inv = *q;
-	quat_conj(&q_inv);
+	quat_conj(&q_inv, &q_inv);
 	quat_mul(&vecq, &vecq, &q_inv);
 	quat_mul(&vecq, q, &vecq);
 	v->x = vecq.x;
 	v->y = vecq.y;
 	v->z = vecq.z;
+}
+
+void lua_pushvector(lua_State *L, vector *v)
+{
+	lua_getglobal(L, "vec");
+	lua_pushnumber(L, v->x);
+	lua_pushnumber(L, v->y);
+	lua_pushnumber(L, v->z);
+	lua_call(L, 3, 1);
+}
+
+void lua_pushvector_imm(lua_State *L, scalar x, scalar y, scalar z)
+{
+	lua_getglobal(L, "vec");
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
+	lua_pushnumber(L, z);
+	lua_call(L, 3, 1);
+}
+
+void lua_tovector(lua_State *L, int index, vector *v)
+{
+	if (index < 0)
+		/* Index counts from top of stack. */
+		index--;
+	lua_pushinteger(L, 1);
+	lua_gettable(L, index);
+	v->x = (scalar) lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	lua_pushinteger(L, 2);
+	lua_gettable(L, index);
+	v->y = (scalar) lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	lua_pushinteger(L, 3);
+	lua_gettable(L, index);
+	v->z = (scalar) lua_tonumber(L, -1);
+	lua_pop(L, 1);
+}
+
+void luaL_checkvector(lua_State *L, int index, vector *v)
+{
+	luaL_argcheck(L,
+		 lua_istable(L, index) && lua_objlen(L, index) != 3
+		,index
+		,"not a vector"
+	);
+	if (index < 0)
+		/* Index counts from top of stack. */
+		index--;
+	lua_pushinteger(L, 1);
+	lua_gettable(L, index);
+	v->x = (scalar) luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+	lua_pushinteger(L, 2);
+	lua_gettable(L, index);
+	v->y = (scalar) luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+	lua_pushinteger(L, 3);
+	lua_gettable(L, index);
+	v->z = (scalar) luaL_checknumber(L, -1);
+	lua_pop(L, 1);
 }
 
 #endif /* VECTOR_H */

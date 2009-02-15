@@ -23,13 +23,35 @@
 
 #include "common.h"
 
+/* The void functions all write their results to the quaternion
+ * pointed to by their first parameter. Such `destination' parameters
+ * may equal any of their source parameters and the function will
+ * still produce correct results. */
+
+/* Return the squared length (magnitude) of a quaternion. */
 scalar quat_len2(quat *q);
+
+/* Return the length of a quaternion. */
 scalar quat_len(quat *q);
-void quat_norm(quat *q);
-void quat_conj(quat *q);
+
+/* q <- q1 normalized. If q1 is the null quaternion, an error is
+ * printed and the functions returns without modifying q. */
+void quat_norm(quat *q, quat *q1);
+
+/* q <- q1 reversed, such that q will have the same angle but rotate
+ * in the opposite direction. */
+void quat_conj(quat *q, quat *q1);
+
+/* q <- q1 * q2, combining their rotations. */
 void quat_mul(quat *q, quat *q1, quat *q2);
+
+/* q <- q * (x, y, z, w). */
 void quat_mul_imm(quat *q, scalar x, scalar y, scalar z, scalar w);
+
+/* q <- the quaternion that represents the given axis-angle rotation. */
 void quat_make_aa(quat *q, scalar angle, scalar x, scalar y, scalar z);
+
+/* q <- the quaternion that represents the given Euler angle rotation. */
 void quat_make_euler(quat *q, scalar yaw, scalar pitch, scalar roll);
 
 #endif /* QUATERNION_H */

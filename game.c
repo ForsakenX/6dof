@@ -153,7 +153,7 @@ static void do_camera_physics(vector *cam_pos, quat *cam_orient)
 	cam_turn_vel.z *= powf(turndrag, -time_diff);
 	quat_make_euler(&qturn, cam_turn_vel.x*time_diff, cam_turn_vel.y*time_diff*0.75, cam_turn_vel.z*time_diff*0.75);
 	quat_mul(cam_orient, cam_orient, &qturn);
-	quat_norm(cam_orient);
+	quat_norm(cam_orient, cam_orient);
 
 	/* Movement */
 	camera.move.x = CAP(move_x + slide_right-slide_left, 1.0f);

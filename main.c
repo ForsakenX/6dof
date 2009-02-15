@@ -82,7 +82,7 @@ static int lua_init(int argc, char *argv[])
 	/* Call Lua function init(argv) */
 	err = lua_pcall(L1, 1, 0, 0);
 	if (err)
-		ERROR(lua_tostring(L1, -1));
+		ERROR("%s", lua_tostring(L1, -1));
 	return err;
 }
 

@@ -31,22 +31,31 @@ scalar quat_len(quat *q)
 	return sqrts(quat_len2(q));
 }
 
-void quat_norm(quat *q)
+void quat_norm(quat *q, quat *q1)
 {
-	scalar len = quat_len(q);
-	if (len == 0.0f)
+	scalar c = quat_len2(q1);
+	if (c < 0.000001f)
+	{
+		ERROR("trying to normalize (near) null quaternion (%g, %g, %g, %g)\n"
+			, q1->x, q1->y, q1->z, q1->w
+		);
 		return;
-	q->x /= len;
-	q->y /= len;
-	q->z /= len;
-	q->w /= len;
+	}
+	if (ABS(c-1.0f) < 0.000001f)
+		/* Normalized enough. */
+		return;
+	c = (scalar) 1.0f / sqrts(c);
+	q->x = q1->x * c;
+	q->y = q1->y * c;
+	q->z = q1->z * c;
+	q->w = q1->w * c;
 }
 
-void quat_conj(quat *q)
+void quat_conj(quat *q, quat *q1)
 {
-	q->x = -q->x;
-	q->y = -q->y;
-	q->z = -q->z;
+	q->x = -q1->x;
+	q->y = -q1->y;
+	q->z = -q1->z;
 }
 
 void quat_mul(quat *q, quat *q1, quat *q2)
@@ -57,6 +66,7 @@ void quat_mul(quat *q, quat *q1, quat *q2)
 	tmp.y = q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x;
 	tmp.z = q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w;
 	tmp.w = q1->w*q2->w - q1->x*q2->x - q1->y*q2->y - q1->z*q2->z;
+
 	*q = tmp;
 }
 
@@ -68,12 +78,13 @@ void quat_mul_imm(quat *q, scalar x, scalar y, scalar z, scalar w)
 	tmp.y = q->w*y - q->x*z + q->y*w + q->z*x;
 	tmp.z = q->w*z + q->x*y - q->y*x + q->z*w;
 	tmp.w = q->w*w - q->x*x - q->y*y - q->z*z;
+
 	*q = tmp;
 }
 
 void quat_make_aa(quat *q, scalar angle, scalar x, scalar y, scalar z)
 {
-	angle /= 2.0f;
+	angle /= (scalar) 2.0f;
 	q->x = x*sins(angle);
 	q->y = y*sins(angle);
 	q->z = z*sins(angle);
@@ -85,9 +96,9 @@ void quat_make_euler(quat *q, scalar yaw, scalar pitch, scalar roll)
 	scalar sin_y, sin_p, sin_r;
 	scalar cos_y, cos_p, cos_r;
 
-	yaw *= (float) M_PI / 360.0f;
-	pitch *= (float) M_PI / 360.0f;
-	roll *= (float) M_PI / 360.0f;
+	yaw *= (scalar) M_PI / (scalar) 360.0f;
+	pitch *= (scalar) M_PI / (scalar) 360.0f;
+	roll *= (scalar) M_PI / (scalar) 360.0f;
 	sin_y = sins(yaw);
 	sin_p = sins(pitch);
 	sin_r = sins(roll);
@@ -98,5 +109,5 @@ void quat_make_euler(quat *q, scalar yaw, scalar pitch, scalar roll)
 	q->y = cos_r*cos_p*sin_y - sin_r*sin_p*cos_y;
 	q->z = sin_r*cos_p*cos_y - cos_r*sin_p*sin_y;
 	q->w = cos_r*cos_p*cos_y + sin_r*sin_p*sin_y;
-	quat_norm(q);
+	quat_norm(q, q);
 }

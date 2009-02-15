@@ -1,6 +1,10 @@
-* Clean up gfx_sdl.c
+* gfx_sdl.c
+  - Polygons: create, destroy
+  - Materials: create, IDs, destroy
+  - Textures: create (load), IDs, destroy
+  - Rendering
+  - Lua data retrieval functions
+  - Lighting...
 
 * Data structures gfx_sdl.c <-> gfx.h ?
 * Level loader function gfx_sdl.c -> gfx.c
-
-* Textures

@@ -238,7 +238,7 @@ void input_process_events(int wait)
 			lua_pushlightuserdata(L1, &event);
 			if (lua_pcall(L1, 1, 0, 0))
 			{
-				ERROR(lua_tostring(L1, -1));
+				ERROR("%s", lua_tostring(L1, -1));
 			}
 		}
 		else if (lua_isfunction(L1, -1))
@@ -247,7 +247,7 @@ void input_process_events(int wait)
 			push_lua_event_data(L1, &event);
 			if (lua_pcall(L1, 1, 0, 0))
 			{
-				ERROR(lua_tostring(L1, -1));
+				ERROR("%s", lua_tostring(L1, -1));
 			}
 		}
 		else if (lua_istable(L1, -1))
@@ -266,7 +266,7 @@ void input_process_events(int wait)
 				, event.id, i);
 			if (lua_pcall(L1, i+1, 0, 0))
 			{
-				ERROR(lua_tostring(L1, -1));
+				ERROR("%s", lua_tostring(L1, -1));
 			}
 		}
 		else

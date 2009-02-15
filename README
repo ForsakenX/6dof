@@ -129,19 +129,21 @@ but here are some guidelines with examples:
       SDL_VideoDriverName(drv_name, 64));
     DEBUG(2, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
 
-* 3 - high-level subsystem functions called::
+* 3 - initialization/shutdown-related subsystem functions called::
 
     DEBUG(3, "audio_null: init()\n");
     DEBUG(3, "gfx_sdl: setting screen mode to %dx%dx%d\n", width, height, bpp);
     (in Lua)  DEBUG(3, "Loading configuration from "..name)
 
-* 4 - data file loading and mid-level subsystem functions::
+* 4 - data file loading and incidentally used or mid-level
+  subsystem functions::
 
     DEBUG(4, "audio_null: load_sound(%s)\n", filename);
     (in Lua)  DEBUG(4, ('Header says %d verts, %d cubes'):
                 format(nverts, ncubes))
 
-* 5 - low-level subsystem functions::
+* 5 - commonly used (but not necessarily every frame) or low-level
+  subsystem functions::
 
     DEBUG(5, "audio_null: play_sound(%d, %d, %.3f, %#x)\n",
       soundno, volume, panning, flags);
