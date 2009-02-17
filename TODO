@@ -8,3 +8,6 @@
 
 * Data structures gfx_sdl.c <-> gfx.h ?
 * Level loader function gfx_sdl.c -> gfx.c
+
+* Documentation:
+  - Prerequisites section

@@ -23,15 +23,14 @@
 #define MAX_INPUTS 512
 #define MAX_JOYSTICKS 4
 
-#define NUM_FIXED_INPUTS 243
-static int num_inputs = NUM_FIXED_INPUTS;
+static int num_inputs;
 
 static const struct fixed_input
 {
 	int type;
 	int id;
 	const char *name;
-} fixed_inputs[NUM_FIXED_INPUTS+1] =
+} fixed_inputs[] =
 {
 	/* Keys */
 	 { BUTTON, SDLK_UNKNOWN, "unknown" }
@@ -489,7 +488,7 @@ static void shutdown(void)
 		DEBUG(3, "input_sdl: shutting down joystick subsystem\n");
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 	}
-	num_inputs = 0;;
+	num_inputs = 0;
 	inputs[0].type = 0;
 }
 
@@ -573,10 +572,14 @@ static int get_event(struct input_event *event, int wait)
 				case SDL_BUTTON_LEFT: event->id = SDLK_LAST+13; break;
 				case SDL_BUTTON_MIDDLE: event->id = SDLK_LAST+14; break;
 				case SDL_BUTTON_RIGHT: event->id = SDLK_LAST+15; break;
+#if SDL_VERSION_ATLEAST(1, 2, 5)
 				case SDL_BUTTON_WHEELUP: event->id = SDLK_LAST+16; break;
 				case SDL_BUTTON_WHEELDOWN: event->id = SDLK_LAST+17; break;
+#endif
+#if SDL_VERSION_ATLEAST(1, 2, 13)
 				case SDL_BUTTON_X1: event->id = SDLK_LAST+18; break;
 				case SDL_BUTTON_X2: event->id = SDLK_LAST+19; break;
+#endif
 			}
 			event->pressed = sdl_ev.type == SDL_MOUSEBUTTONDOWN;
 			if (event->pressed)

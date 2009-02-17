@@ -45,6 +45,8 @@ struct control
  * values. */
 #define BALL 5
 
+#define NUM_INPUT_TYPES 5
+
 /* Mouse generates POINTER events. */
 #define MOUSE_POINTER 0
 /* Mouse generates BALL events. */
