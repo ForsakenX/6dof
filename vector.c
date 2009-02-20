@@ -170,7 +170,7 @@ void lua_tovector(lua_State *L, int index, vector *v)
 void luaL_checkvector(lua_State *L, int index, vector *v)
 {
 	luaL_argcheck(L,
-		 lua_istable(L, index) && lua_objlen(L, index) != 3
+		 lua_istable(L, index) && lua_objlen(L, index) == 3
 		,index
 		,"not a vector"
 	);

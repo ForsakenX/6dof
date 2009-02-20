@@ -428,6 +428,21 @@ Vectors can be created and used like this::
     print(v:norm()) -- '(0.267261, 0.534522, 0.801784)' (normalized)
     print(v:cross(w)) -- '(-4, 8, -4)' (cross product)
 
+Sounds
+------
+::
+
+    -- load a sound sample
+    audio.load('mysoundhandlename', 'filename.wav')
+    -- play it
+    handle = audio.play('mysoundhandlename', 65535, 0, 0)
+    -- or positional --
+    handle = audio.play3d('mysoundhandlename', vec(1, 2, 3), 65535, 0)
+    -- stop the sound
+    audio.stop(handle)
+    -- unload it
+    audio.free('mysoundhandlename')
+
 Miscellaneous Lua functions
 ---------------------------
 These are some additional functions that don't fall into any other

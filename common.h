@@ -48,18 +48,22 @@
 #include <GL/glu.h>
 #endif
 
+/* To check functions that return 0 on success, non-zero on failure. */
 #define CHECK(x) \
 	{ \
 		int _err = x; \
 		if (_err) return _err; \
 	}
 
+/* DEBUG is used like printf() but with an additional first
+ * argument indicating the minimum debug level for the message. */
 #ifdef NDEBUG
 #define DEBUG(x...)
 #else
 #define DEBUG(level, x...) { if (debug_level >= level) fprintf(stderr, x); }
 #endif
 
+/* Used like printf(). */
 #define ERROR(x...) \
 	{ \
 		if (debug_level > 0) \
@@ -76,6 +80,7 @@
 		fputs("\n", stderr); \
 	}
 
+/* Load and run a Lua script, returning an error code if it failed. */
 #define LUA_RUN(f) \
 	{ \
 		int _err = luaL_dofile(L1, f); \
@@ -87,6 +92,7 @@
 		} \
 	}
 
+/* Some math macros usable for any numerical type. */
 #define ABS(x) ((x)>=0?(x):-(x))
 #define SQ(x) ((x)*(x))
 

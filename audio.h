@@ -42,7 +42,7 @@ struct audio_driver
 	 *
 	 * Returns a sound ID (which can be supplied to the play functions)
 	 * which is zero or positive, or a negative value on failure. */
-	int (*load)(char *filename);
+	int (*load)(const char *filename);
 
 	/* Unload the given sound from memory. This function can't fail,
 	 * but may print a warning if e.g. an invalid soundno is given. */

@@ -31,9 +31,9 @@ static void shutdown(void)
 	DEBUG(3, "audio_null: shutdown()\n");
 }
 
-static int load_sound(char *filename)
+static int load_sound(const char *filename)
 {
-	DEBUG(4, "audio_null: load_sound(%s)\n", filename);
+	DEBUG(4, "audio_null: load_sound(\"%s\")\n", filename);
 	return 0;
 }
 
