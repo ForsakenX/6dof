@@ -29,47 +29,47 @@
  * produce correct results. */
 
 /* Return the squared length (magnitude) of a vector. */
-scalar vec_mag2(vector *v);
+scalar vec_mag2(const vector *v);
 
 /* Return the length of a vector. */
-scalar vec_mag(vector *v);
+scalar vec_mag(const vector *v);
 
 /* v <- v1 normalized. If v1 is the null vector, an error is
  * printed and the functions returns without modifying v. */
-void vec_norm(vector *v, vector *v1);
+void vec_norm(vector *v, const vector *v1);
 
 /* v <- v1 negated, such that v will have the same length but point
  * in the opposite direction. */
-void vec_neg(vector *v, vector *v1);
+void vec_neg(vector *v, const vector *v1);
 
 /* v <- v1 + v2 */
-void vec_add(vector *v, vector *v1, vector *v2);
+void vec_add(vector *v, const vector *v1, const vector *v2);
 
 /* v <- v1 - v2 */
-void vec_sub(vector *v, vector *v1, vector *v2);
+void vec_sub(vector *v, const vector *v1, const vector *v2);
 
 /* Returns the squared distance between v1 and v2. */
-scalar vec_dist2(vector *v1, vector *v2);
+scalar vec_dist2(const vector *v1, const vector *v2);
 
 /* Returns the distance between v1 and v2. */
-scalar vec_dist(vector *v1, vector *v2);
+scalar vec_dist(const vector *v1, const vector *v2);
 
 /* Returns the dot product of v1 and v2. */
-scalar vec_dotprod(vector *v1, vector *v2);
+scalar vec_dotprod(const vector *v1, const vector *v2);
 
 /* Returns the dot product of v and the vector (x, y, z). */
-scalar vec_dotprod_imm(vector *v, scalar x, scalar y, scalar z);
+scalar vec_dotprod_imm(const vector *v, scalar x, scalar y, scalar z);
 
 /* v <- v1 x v2 (the cross product of v1 and v2). */
-void vec_crossprod(vector *v, vector *v1, vector *v2);
+void vec_crossprod(vector *v, const vector *v1, const vector *v2);
 
 /* Rotates v as indicated by the quaternion q. */
-void vec_rotate(vector *v, quat *q);
+void vec_rotate(vector *v, const quat *q);
 
 /* [-0, +1, -]
  *
  * Pushes the vector v onto the Lua stack. */
-void lua_pushvector(lua_State *L, vector *v);
+void lua_pushvector(lua_State *L, const vector *v);
 
 /* [-0, +1, -]
  *

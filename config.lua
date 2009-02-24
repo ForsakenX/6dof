@@ -20,8 +20,10 @@
 -- Thanks to Methods for the setfenv suggestion
 function load_config(name)
 	DEBUG(3, "Loading configuration from "..name)
-	rawset(config, '_config', {})
-	setfenv(loadfile(name), config._config)()
+	local rawcfg = {}
+	rawset(config, '_config', rawcfg)
+	setfenv(loadfile(name), rawcfg)()
+	debuglevel(rawcfg.debug)
 end
 
 function write_config(name)
@@ -33,7 +35,7 @@ function write_config(name)
 	f:close()
 end
 
-function config_check_value(k, v)
+local function config_checkvalue(k, v)
 	if k == 'debug' then
 		v = tonumber(v)
 		if v < -10 or v > 10 then return "value must be in range -10 to 10" end
@@ -60,6 +62,9 @@ end
 
 setmetatable(config, {
 	__index = function(t, key)
+		if key == 'debug' then
+			return debuglevel()
+		end
 		local value = rawget(t, '_config')[key]
 		if value == nil then
 			warn("unknown option name (`"..key.."') or nil value")
@@ -71,10 +76,10 @@ setmetatable(config, {
 		if rawget(t, '_config')[key] == nil then
 			warn("tried to set unknown option `"..key.."' to `"..tostring(value).."'")
 		else
-			local err = config_check_value(key, value)
+			local err = config_checkvalue(key, value)
 			if err == nil then
 				if key == 'debug' then
-					debug_level(value)
+					debuglevel(value)
 				else
 					DEBUG(2, "Setting option `"..key.."' to `"..tostring(value).."'")
 					rawset(rawget(t, '_config'), key, value)

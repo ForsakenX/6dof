@@ -20,18 +20,18 @@
 
 #include "common.h"
 
-scalar quat_len2(quat *q)
+scalar quat_len2(const quat *q)
 {
 	return q->x*q->x + q->y*q->y
 	     + q->z*q->z + q->w*q->w;
 }
 
-scalar quat_len(quat *q)
+scalar quat_len(const quat *q)
 {
 	return sqrts(quat_len2(q));
 }
 
-void quat_norm(quat *q, quat *q1)
+void quat_norm(quat *q, const quat *q1)
 {
 	scalar c = quat_len2(q1);
 	if (c < 0.000001f)
@@ -51,14 +51,14 @@ void quat_norm(quat *q, quat *q1)
 	q->w = q1->w * c;
 }
 
-void quat_conj(quat *q, quat *q1)
+void quat_conj(quat *q, const quat *q1)
 {
 	q->x = -q1->x;
 	q->y = -q1->y;
 	q->z = -q1->z;
 }
 
-void quat_mul(quat *q, quat *q1, quat *q2)
+void quat_mul(quat *q, const quat *q1, const quat *q2)
 {
 	quat tmp;
 

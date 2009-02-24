@@ -67,7 +67,7 @@ static int lua_init(int argc, char *argv[])
 
 	/* Export debug_level function to Lua environment. */
 	lua_pushcfunction(L1, lua_debug_level);
-	lua_setglobal(L1, "debug_level");
+	lua_setglobal(L1, "debuglevel");
 
 	LUA_RUN("init.lua");
 	lua_settop(L1, 0);

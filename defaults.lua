@@ -1,4 +1,4 @@
-debug = 4 -- not used (debug_level is kept in C)
+debug = 0
 
 -- Video configuration
 width = 640
@@ -7,8 +7,8 @@ bpp = 24
 drawnormals = false
 
 -- Audio configuration
-audio_frequency = 44100
-audio_buffer_size = 1024
+audiofreq = 44100
+audiobufsize = 1024
 
 -- Input configuration
 mousesensx = 0.5 -- Negative values will result in an inverted axis

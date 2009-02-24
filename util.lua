@@ -18,7 +18,7 @@
 -- Boston, MA 02110-1301 USA.
 
 function DEBUG(level, ...)
-	if type(debug_level) == 'function' and debug_level() >= level then
+	if type(debuglevel) == 'function' and debuglevel() >= level then
 		print(string.format(...))
 	end
 end

@@ -46,6 +46,8 @@ static void init_lua_table(lua_State *L)
 		, num_inputs);
 }
 
+#if 0
+/* (unused) */
 /* Returns -1 if the name doesn't exist. */
 static int input_name_to_id(const char *name)
 {
@@ -62,6 +64,7 @@ static int input_name_to_id(const char *name)
 
 	return id;
 }
+#endif
 
 /* A C closure bound to a C based input event handler (input_func).
  * It takes a struct input_event light userdata as argument. */
@@ -84,7 +87,7 @@ static int input_from_lua(lua_State *L)
 		return 0;
 	}
 	event = lua_touserdata(L, 1);
-	DEBUG(8, "C function (%#tx) triggered by input event with id %d\n"
+	DEBUG(8, "C function (%p) triggered by input event with id %d\n"
 		, f, event->id
 	);
 	lua_pop(L, 1);

@@ -496,13 +496,13 @@ static const struct input *get_inputs(int *n)
 {
 	if (n)
 	{
-		DEBUG(10, "input_sdl: get_inputs(%#tx <- %d) = %#tx\n"
+		DEBUG(10, "input_sdl: get_inputs(%p <- %d) = %p\n"
 			, n, num_inputs, inputs);
 		*n = num_inputs;
 	}
 	else
 	{
-		DEBUG(10, "input_sdl: get_inputs(NULL) = %#tx\n", inputs);
+		DEBUG(10, "input_sdl: get_inputs(NULL) = %p\n", inputs);
 	}
 	return inputs;
 }

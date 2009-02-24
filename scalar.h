@@ -24,23 +24,66 @@
 #include "common.h"
 
 #if defined(SCALAR_FLOAT)
-
-#define sins sinf
-#define coss cosf
-#define sqrts sqrtf
-
+#define SCALAR_SUFFIXED(x) x ## f
 #elif defined(SCALAR_DOUBLE)
-
-#define sins sin
-#define coss cos
-#define sqrts sqrt
-
+#define SCALAR_SUFFIXED(x) x
 #elif defined(SCALAR_LONG_DOUBLE)
-
-#define sins sinl
-#define coss cosl
-#define sqrts sqrtl
-
+#define SCALAR_SUFFIXED(x) x ## l
 #endif
+
+#define acoss SCALAR_SUFFIXED(acos)
+#define acoshs SCALAR_SUFFIXED(acosh)
+#define asinhs SCALAR_SUFFIXED(asinh)
+#define asins SCALAR_SUFFIXED(asin)
+#define atans SCALAR_SUFFIXED(atan)
+#define atan2s SCALAR_SUFFIXED(atan2)
+#define atanhs SCALAR_SUFFIXED(atanh)
+#define cbrts SCALAR_SUFFIXED(cbrt)
+#define ceils SCALAR_SUFFIXED(ceil)
+#define copysigns SCALAR_SUFFIXED(copysign)
+#define coss SCALAR_SUFFIXED(cos)
+#define erfs SCALAR_SUFFIXED(erf)
+#define erfcs SCALAR_SUFFIXED(erfc)
+#define exps SCALAR_SUFFIXED(exp)
+#define expm1s SCALAR_SUFFIXED(expm1)
+#define fabss SCALAR_SUFFIXED(fabs)
+#define fdims SCALAR_SUFFIXED(fdim)
+#define floors SCALAR_SUFFIXED(floor)
+#define fmas SCALAR_SUFFIXED(fma)
+#define fmaxs SCALAR_SUFFIXED(fmax)
+#define fmins SCALAR_SUFFIXED(fmin)
+#define fmods SCALAR_SUFFIXED(fmod)
+#define frexps SCALAR_SUFFIXED(frexp)
+#define hypots SCALAR_SUFFIXED(hypot)
+#define ilogbs SCALAR_SUFFIXED(ilogb)
+#define ldexps SCALAR_SUFFIXED(ldexp)
+#define lgammas SCALAR_SUFFIXED(lgamma)
+#define llrints SCALAR_SUFFIXED(llrint)
+#define llrounds SCALAR_SUFFIXED(llround)
+#define logs SCALAR_SUFFIXED(log)
+#define log10s SCALAR_SUFFIXED(log10)
+#define log1ps SCALAR_SUFFIXED(log1p)
+#define log2s SCALAR_SUFFIXED(log2)
+#define logbs SCALAR_SUFFIXED(logb)
+#define lrints SCALAR_SUFFIXED(lrint)
+#define lrounds SCALAR_SUFFIXED(lround)
+#define mods SCALAR_SUFFIXED(mod)
+#define nans SCALAR_SUFFIXED(nan)
+#define nearbyints SCALAR_SUFFIXED(nearbyint)
+#define nextafters SCALAR_SUFFIXED(nextafter)
+#define nexttowards SCALAR_SUFFIXED(nexttoward)
+#define pows SCALAR_SUFFIXED(pow)
+#define remainders SCALAR_SUFFIXED(remainder)
+#define remquos SCALAR_SUFFIXED(remquo)
+#define rints SCALAR_SUFFIXED(rint)
+#define rounds SCALAR_SUFFIXED(round)
+#define scalblns SCALAR_SUFFIXED(scalbln)
+#define scalbns SCALAR_SUFFIXED(scalbn)
+#define sins SCALAR_SUFFIXED(sin)
+#define sqrts SCALAR_SUFFIXED(sqrt)
+#define tans SCALAR_SUFFIXED(tan)
+#define tanhs SCALAR_SUFFIXED(tanh)
+#define tgammas SCALAR_SUFFIXED(tgamma)
+#define truncs SCALAR_SUFFIXED(trunc)
 
 #endif /* SCALAR_H */

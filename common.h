@@ -96,6 +96,69 @@
 #define ABS(x) ((x)>=0?(x):-(x))
 #define SQ(x) ((x)*(x))
 
+/* Alloc + check macros. */
+
+#define MALLOC(type, num) \
+	({ \
+		void *_p = malloc(num * sizeof(type)); \
+		if (!_p) \
+		{ \
+			ERROR("malloc(%d * sizeof(%s)) failed", num, #type); \
+			luaL_error(L1, "malloc() failed"); \
+		} \
+		_p; \
+	})
+
+#define CALLOC(type, num) \
+	({ \
+		void *_p = calloc(num, sizeof(type)); \
+		if (!_p) \
+		{ \
+			ERROR("calloc(%d, sizeof(%s)) failed", num, #type); \
+			luaL_error(L1, "calloc() failed"); \
+		} \
+		_p; \
+	})
+
+/* malloc() and calloc() are typically used to allocate space for
+ * a single new object, so here's a separate macro for that. */
+#define MALLOC1(type) MALLOC(type, 1)
+#define CALLOC1(type) CALLOC(type, 1)
+
+/* realloc() is typically used to resize a list to some number of elements. */
+#define REALLOC(list, num) \
+	list = realloc(list, (num) * sizeof(typeof(*(list)))); \
+	if (!list) \
+	{ \
+		ERROR("realloc(%s, %d * %zd) failed", \
+			#list, num, sizeof(typeof(*(list))) \
+		); \
+		luaL_error(L1, "realloc() failed"); \
+	}
+
+/* memcpy() with type checking and inference. */
+#define MEMCPY(dest, src, nelem) \
+	({ \
+		void *_p = \
+			__builtin_choose_expr( \
+				__builtin_types_compatible_p(typeof(dest), typeof(src)), \
+				memcpy(dest, src, nelem * sizeof(typeof(*dest))), \
+				(void) 0 \
+			); \
+		_p; \
+	})
+
+#define FREE(x) \
+	if (x) \
+	{ \
+		free(x); \
+		(x) = NULL; \
+	} \
+	else \
+	{ \
+		ERROR("attempted to free null pointer " #x); \
+	}
+
 #include "types.h"
 #include "scalar.h"
 #include "vector.h"

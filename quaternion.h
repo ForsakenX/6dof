@@ -29,21 +29,21 @@
  * still produce correct results. */
 
 /* Return the squared length (magnitude) of a quaternion. */
-scalar quat_len2(quat *q);
+scalar quat_len2(const quat *q);
 
 /* Return the length of a quaternion. */
-scalar quat_len(quat *q);
+scalar quat_len(const quat *q);
 
 /* q <- q1 normalized. If q1 is the null quaternion, an error is
  * printed and the functions returns without modifying q. */
-void quat_norm(quat *q, quat *q1);
+void quat_norm(quat *q, const quat *q1);
 
 /* q <- q1 reversed, such that q will have the same angle but rotate
  * in the opposite direction. */
-void quat_conj(quat *q, quat *q1);
+void quat_conj(quat *q, const quat *q1);
 
 /* q <- q1 * q2, combining their rotations. */
-void quat_mul(quat *q, quat *q1, quat *q2);
+void quat_mul(quat *q, const quat *q1, const quat *q2);
 
 /* q <- q * (x, y, z, w). */
 void quat_mul_imm(quat *q, scalar x, scalar y, scalar z, scalar w);
