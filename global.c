@@ -22,3 +22,11 @@
 
 lua_State *L1;
 int debug_level;
+
+/* index is the stack index of the table to query.
+ * n is the index of the table entry to retrieve. */
+void lua_getfieldi(lua_State *L, int index, int n)
+{
+	lua_pushinteger(L, n);
+	lua_gettable(L, (index < 0) ? index - 1 : index);
+}

@@ -49,3 +49,13 @@ function binfile(f)
 	})
 	return t
 end
+
+function screenshot()
+	fname = 'scrn-' .. os.date('%Y%m%d-%H%M%S') .. '.ppm'
+	DEBUG(4, 'Saving screenshot to ' .. fname)
+	local image = gfx.readpixels(0, 0, config.width, config.height)
+	local f = io.open(fname, 'w')
+	f:write(("P6\n%d %d\n255\n"):format(image.width, image.height))
+	f:write(image.data)
+	f:close()
+end

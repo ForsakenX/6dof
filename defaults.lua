@@ -1,10 +1,11 @@
 debug = 0
 
 -- Video configuration
-width = 640
-height = 480
+width = 1024
+height = 768
 bpp = 24
 drawnormals = false
+drawbasis = false
 
 -- Audio configuration
 audiofreq = 44100
@@ -16,13 +17,14 @@ mousesensy = 0.5
 joystick = true
 
 -- Level to load
-level = 'testlevel.lua'
+level = 'fsknmx.lua'
 
 -- Camera physics (temporary)
-accel = 5000
-drag = 10
-turnaccel = 400
+accel = 3000
+drag = 50
+turnaccel = 500
 turndrag = 30
 
--- Temporary for level/model to load
+-- Temporary options for level/model to load and texture directory
 lvlfile = '/home/pim/src/forsaken/skeleton/Data/Levels/ship/SHIP.MXV'
+texdir = '/home/pim/src/forsaken/skeleton/Data/Levels/ship/textures'

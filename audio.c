@@ -163,7 +163,6 @@ void audio_luainit(void)
 		,{ NULL, NULL }
 	};
 	luaL_register(L1, "audio", funcs);
-	lua_getglobal(L1, "audio");
 	lua_newtable(L1);
 	lua_setfield(L1, -2, "sounds");
 	lua_pop(L1, 1);

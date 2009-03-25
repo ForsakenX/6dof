@@ -20,6 +20,8 @@
 
 #include "common.h"
 
+static struct model *level;
+
 float accel, drag, turnaccel, turndrag;
 
 int move_forward, move_backward, slide_left, slide_right, slide_up, slide_down;
@@ -173,9 +175,24 @@ static void do_camera_physics(vector *cam_pos, quat *cam_orient)
 	cam_pos->z += cam_vel.z * time_diff;
 }
 
+static void clear_level(void)
+{
+	DEBUG(3, "game: clear_level()\n");
+	if (level)
+	{
+		DEBUG(3, "Unloading level\n");
+		model_destroy(level);
+		lua_pushnil(L1);
+		lua_setglobal(L1, "level");
+		lua_gc(L1, LUA_GCCOLLECT, 0);
+		level = NULL;
+	}
+}
+
 int game_init(void)
 {
 	DEBUG(1, "Initializing game core\n");
+	level = NULL;
 	quit = 0;
 	accel = config_get_float("accel");
 	drag = config_get_float("drag");
@@ -216,6 +233,52 @@ int game_init(void)
 void game_shutdown(void)
 {
 	DEBUG(1, "Shutting down game core\n");
+	clear_level();
+}
+
+int load_level(const char *filename)
+{
+	struct mesh *m;
+	const char *err;
+	int ret;
+
+	DEBUG(3, "game: load_level(\"%s\")\n", filename);
+	ret = luaL_dofile(L1, filename);
+	if (ret)
+	{
+		err = lua_tostring(L1, -1);
+		ERROR("error while loading level: %s", err);
+		lua_pop(L1, 1);
+		return 1;
+	}
+	lua_getfield(L1, -1, "vertices");
+	if (!lua_istable(L1, -1))
+	{
+		ERROR("expected `vertices' field in Lua level data table");
+		lua_pop(L1, 2);
+		return 1;
+	}
+	clear_level();
+	m = mesh_create();
+	mesh_addluaverts(m, L1, -1);
+	lua_pop(L1, 1);
+	lua_getfield(L1, -1, "faces");
+	if (!lua_istable(L1, -1))
+	{
+		mesh_destroy(m);
+		ERROR("expected `faces' field in Lua level data table");
+		return 1;
+	}
+	mesh_addluafaces(m, L1, -1);
+	lua_pop(L1, 1);
+	lua_setglobal(L1, "level");
+	level = model_create(m);
+	/* m is no longer needed. */
+	mesh_destroy(m);
+	gfx_prepmodel(level);
+	gfx->set_level(level);
+
+	return 0;
 }
 
 int game_main(void)
@@ -233,9 +296,10 @@ int game_main(void)
 		sprintf(title, "6dof (%.2f FPS)"
 			, frames / (time - last_title_update_time)
 		);
-		gfx->set_window_title(title, "6dof");
+		gfx->set_title(title, "6dof");
 		last_title_update_time = time;
 		frames = 0;
+		lua_gc(L1, LUA_GCCOLLECT, 0);
 	}
 	mouseturn_x = mouseturn_y = 0;
 	input_process_events(0);

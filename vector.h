@@ -23,6 +23,9 @@
 
 #include "common.h"
 
+/* Returns non-zero if and only if v is the null vector. */
+int vec_isnull(const vector *v);
+
 /* The void functions all write their results to the vector pointed
  * to by their first parameter. Such `destination' parameters may
  * equal any of their source parameters and the function will still
@@ -80,6 +83,9 @@ void lua_pushvector_imm(lua_State *L, scalar x, scalar y, scalar z);
  *
  * Writes the vector (3-number table) value at index to v. */
 void lua_tovector(lua_State *L, int index, vector *v);
+
+/* Checks whether the value at the given index is a vector. */
+int lua_isvector(lua_State *L, int index);
 
 /* [-0, +0, v]
  *

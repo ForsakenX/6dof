@@ -42,7 +42,7 @@ ifeq ($(OPENGL),1)
 	LIBS+= -lGL -lGLU
 endif
 
-OBJS=audio.o audio_null.o config.o file.o game.o gfx.o globals.o input.o lua_funcs.o main.o quaternion.o time.o vector.o
+OBJS=audio.o audio_null.o config.o file.o game.o gfx.o global.o input.o lua_funcs.o main.o model.o quaternion.o time.o vector.o
 ifeq ($(AUDIO_SDLMIXER),1)
 	CFLAGS+= -DAUDIO_SDLMIXER
 	OBJS+= audio_sdlmixer.o
@@ -82,7 +82,7 @@ $(BIN): $(OBJS)
 
 $(OBJS): | common.h.gch
 
-common.h.gch: audio.h common.h config.h file.h game.h gfx.h globals.h input.h quaternion.h types.h vector.h
+common.h.gch: audio.h common.h config.h file.h game.h gfx.h global.h input.h lua_funcs.h model.h quaternion.h scalar.h types.h vector.h
 	$(CC) $(CFLAGS) -o common.h.gch common.h
 
 clean:

@@ -23,6 +23,13 @@
 
 #include "common.h"
 
+int vec_isnull(const vector *v)
+{
+	return v->x == 0.0f
+	    && v->y == 0.0f
+	    && v->z == 0.0f;
+}
+
 scalar vec_mag2(const vector *v)
 {
 	return v->x*v->x
@@ -150,21 +157,35 @@ void lua_pushvector_imm(lua_State *L, scalar x, scalar y, scalar z)
 
 void lua_tovector(lua_State *L, int index, vector *v)
 {
-	if (index < 0)
-		/* Index counts from top of stack. */
-		index--;
-	lua_pushinteger(L, 1);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 1);
 	v->x = (scalar) lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	lua_pushinteger(L, 2);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 2);
 	v->y = (scalar) lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	lua_pushinteger(L, 3);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 3);
 	v->z = (scalar) lua_tonumber(L, -1);
 	lua_pop(L, 1);
+}
+
+int lua_isvector(lua_State *L, int index)
+{
+	int i;
+
+	if (!lua_istable(L, index))
+		return 0;
+	for (i=1; i<=3; i++)
+	{
+		lua_getfieldi(L, index, i);
+		if (!lua_isnumber(L, -1))
+		{
+			lua_pop(L, 1);
+			return 0;
+		}
+		lua_pop(L, 1);
+	}
+
+	return 1;
 }
 
 void luaL_checkvector(lua_State *L, int index, vector *v)
@@ -174,19 +195,13 @@ void luaL_checkvector(lua_State *L, int index, vector *v)
 		,index
 		,"not a vector"
 	);
-	if (index < 0)
-		/* Index counts from top of stack. */
-		index--;
-	lua_pushinteger(L, 1);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 1);
 	v->x = (scalar) luaL_checknumber(L, -1);
 	lua_pop(L, 1);
-	lua_pushinteger(L, 2);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 2);
 	v->y = (scalar) luaL_checknumber(L, -1);
 	lua_pop(L, 1);
-	lua_pushinteger(L, 3);
-	lua_gettable(L, index);
+	lua_getfieldi(L, index, 3);
 	v->z = (scalar) luaL_checknumber(L, -1);
 	lua_pop(L, 1);
 }

@@ -25,27 +25,6 @@ struct input_driver *input;
 int num_inputs;
 const struct input *inputs;
 
-static void init_lua_table(lua_State *L)
-{
-	int i;
-
-	lua_createtable(L, 0, 2);
-	lua_createtable(L, 0, num_inputs);
-	for (i=0; i<num_inputs; i++)
-	{
-		lua_pushinteger(L, inputs[i].id);
-		lua_setfield(L, -2, inputs[i].name);
-	}
-	lua_setfield(L, -2, "id");
-	lua_newtable(L);
-	lua_setfield(L, -2, "bindings");
-	lua_newtable(L);
-	lua_setfield(L, -2, "funcs");
-	lua_setglobal(L, "input");
-	DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n"
-		, num_inputs);
-}
-
 #if 0
 /* (unused) */
 /* Returns -1 if the name doesn't exist. */
@@ -169,17 +148,33 @@ static int set_mouse_move_func(lua_State *L)
 	return 0;
 }
 
-static const luaL_Reg lua_funcs[] =
+static void input_luainit(void)
 {
-	{ "setmousecontrol", set_mouse_move_func },
-	{ NULL, NULL }
-};
+	static const luaL_Reg lua_funcs[] =
+	{
+		{ "setmousecontrol", set_mouse_move_func },
+		{ NULL, NULL }
+	};
+	int i;
 
-static void register_lua_funcs(lua_State *L)
-{
-	lua_getglobal(L, "input");
-	luaL_register(L, NULL, lua_funcs);
-	lua_setglobal(L, "input");
+	luaL_register(L1, "input", lua_funcs);
+	/* For each input, input.id[name] = id */
+	lua_createtable(L1, 0, num_inputs);
+	for (i=0; i<num_inputs; i++)
+	{
+		lua_pushinteger(L1, inputs[i].id);
+		lua_setfield(L1, -2, inputs[i].name);
+	}
+	lua_setfield(L1, -2, "id");
+	/* input.bindings = {} */
+	lua_newtable(L1);
+	lua_setfield(L1, -2, "bindings");
+	/* input.funcs = {} */
+	lua_newtable(L1);
+	lua_setfield(L1, -2, "funcs");
+	lua_pop(L1, 1);
+	DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n"
+		, num_inputs);
 }
 
 int input_init(void)
@@ -193,8 +188,7 @@ int input_init(void)
 	if (ret)
 		return ret;
 	inputs = input->get_inputs(&num_inputs);
-	init_lua_table(L1);
-	register_lua_funcs(L1);
+	input_luainit();
 	LUA_RUN("input.lua");
 
 	return 0;

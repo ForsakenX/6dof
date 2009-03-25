@@ -1,6 +1,12 @@
 input.bind('quit', input.funcs.exit)
 input.bind('escape', input.funcs.exit)
 
+input.bind('f12', function(event)
+	if event.pressed then
+		screenshot()
+	end
+end)
+
 input.bind('a', input.funcs.forward)
 input.bind('z', input.funcs.reverse)
 input.bind('s', input.funcs.slide_left)

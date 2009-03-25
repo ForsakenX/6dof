@@ -64,6 +64,14 @@
 #endif
 
 /* Used like printf(). */
+#ifdef NDEBUG
+#define ERROR(x...) \
+	{ \
+		fputs("Error: ", stderr); \
+		fprintf(stderr, x); \
+		fputs("\n", stderr); \
+	}
+#else /* !NDEBUG */
 #define ERROR(x...) \
 	{ \
 		if (debug_level > 0) \
@@ -79,6 +87,7 @@
 		fprintf(stderr, x); \
 		fputs("\n", stderr); \
 	}
+#endif /* !NDEBUG */
 
 /* Load and run a Lua script, returning an error code if it failed. */
 #define LUA_RUN(f) \
@@ -100,57 +109,89 @@
 
 #define MALLOC(type, num) \
 	({ \
+		DEBUG(10, "malloc(%d, %zd /* %s */) = ", \
+			num, sizeof(type), #type \
+		); \
 		void *_p = malloc(num * sizeof(type)); \
 		if (!_p) \
 		{ \
 			ERROR("malloc(%d * sizeof(%s)) failed", num, #type); \
 			luaL_error(L1, "malloc() failed"); \
 		} \
+		DEBUG(10, "%p\n", _p); \
 		_p; \
 	})
 
 #define CALLOC(type, num) \
 	({ \
+		DEBUG(10, "calloc(%d, %zd /* %s */) = ", \
+			num, sizeof(type), #type \
+		); \
 		void *_p = calloc(num, sizeof(type)); \
 		if (!_p) \
 		{ \
 			ERROR("calloc(%d, sizeof(%s)) failed", num, #type); \
 			luaL_error(L1, "calloc() failed"); \
 		} \
+		DEBUG(10, "%p\n", _p); \
 		_p; \
 	})
 
 /* malloc() and calloc() are typically used to allocate space for
- * a single new object, so here's a separate macro for that. */
+ * a single new object, so here are some separate macros for it. */
 #define MALLOC1(type) MALLOC(type, 1)
 #define CALLOC1(type) CALLOC(type, 1)
 
-/* realloc() is typically used to resize a list to some number of elements. */
+/* realloc() is typically used to allocate space for a list or
+ * resize a list to some number of elements. */
 #define REALLOC(list, num) \
-	list = realloc(list, (num) * sizeof(typeof(*(list)))); \
-	if (!list) \
+	DEBUG(10, "realloc(%s /* %p */, %d * %zd) = ", \
+		#list, list, (int) (num), sizeof(*(list)) \
+	); \
+	if ((num) > 0) \
 	{ \
-		ERROR("realloc(%s, %d * %zd) failed", \
-			#list, num, sizeof(typeof(*(list))) \
-		); \
-		luaL_error(L1, "realloc() failed"); \
+		list = realloc(list, (num) * sizeof(*(list))); \
+		DEBUG(10, "%p\n", list); \
+		if (!list) \
+		{ \
+			ERROR("realloc(%s, %d * %zd) failed", \
+				#list, num, sizeof(*(list)) \
+			); \
+			luaL_error(L1, "realloc() failed"); \
+		} \
+	} \
+	else \
+	{ \
+		ERROR("REALLOC invoked with num == %d\n", num); \
 	}
 
 /* memcpy() with type checking and inference. */
 #define MEMCPY(dest, src, nelem) \
 	({ \
+		DEBUG(10, "memcpy(%p, %p, %d * %zd)\n", \
+			dest, src, nelem, sizeof(*(dest)) \
+		); \
 		void *_p = \
 			__builtin_choose_expr( \
-				__builtin_types_compatible_p(typeof(dest), typeof(src)), \
-				memcpy(dest, src, nelem * sizeof(typeof(*dest))), \
+				__builtin_types_compatible_p(typeof(*(dest)), typeof(*(src))), \
+				memcpy(dest, src, nelem * sizeof(*(dest))), \
 				(void) 0 \
 			); \
 		_p; \
 	})
 
+/* memset() with type inference (takes element count instead of
+ * byte count. */
+#define MEMSET(mem, value, n) \
+	DEBUG(10, "memset(%p, %d, %d * %zd)\n", \
+		mem, value, n, sizeof(*(mem)) \
+	); \
+	memset(mem, value, (n) * sizeof(*(mem)));
+
 #define FREE(x) \
 	if (x) \
 	{ \
+		DEBUG(10, "free(%p)\n", x); \
 		free(x); \
 		(x) = NULL; \
 	} \
@@ -160,14 +201,15 @@
 	}
 
 #include "types.h"
+#include "global.h"
 #include "scalar.h"
 #include "vector.h"
 #include "quaternion.h"
-#include "globals.h"
 #include "config.h"
 #include "lua_funcs.h"
 #include "file.h"
 #include "time.h"
+#include "model.h"
 #include "audio.h"
 #include "gfx.h"
 #include "input.h"

@@ -28,6 +28,19 @@ find many things that will interest you unless you are a programmer
 who wants to learn how it is organized, and perhaps help out. This
 ``README`` file should help you get started.
 
+Design goals
+------------
+* Simplicity: it should be easy to understand how a component can be
+  used and how it actually is used, and to get a decent overview of
+  the whole.
+
+* Flexibility: it should be straightforward to add new components
+  or replace existing ones, such as level readers/generators or
+  audio/graphics modules.
+
+The idea is to do the minimum amount of design needed for the project
+to have both of these properties in a Reasonable(tm) degree.
+
 Overview
 ========
 The game consists of a core written in C that is augmented by a Lua_
@@ -58,11 +71,13 @@ Core project files
 
 * ``defaults.lua`` defines options and their initial default values.
 
-* ``game.c`` and ``game.h`` define the game world model and contain
-  the main loop.
+* ``game.c`` and ``game.h`` define the core of the game world model
+  and contain the main loop. (Currently the "model" is just the level
+  with a camera flying through it - basic physics for the camera are
+  also implemented here for now).
 
-* ``globals.c`` and ``globals.h`` define the debug-level variable and
-  Lua environment. These may later be moved elsewhere.
+* ``global.c`` and ``global.h`` define global variables and
+  miscellaneous functions that are used throughout the code.
 
 * ``init.lua`` sets up the Lua environment and processes the
   commandline.
@@ -77,9 +92,10 @@ Core project files
 * ``main.c`` contains the game's entry point. See below.
 
 * ``scalar.h`` contains some macros for working with the ``scalar``
-  type specifically. Currently they just map the ``sins``, ``coss``,
-  and ``sqrts`` to the corresponding math functions for the primitive
-  C type represented by ``scalar``.
+  type. It provides ``scalar`` equivalents for math library functions
+  such as ``sin``, ``cos``, and ``sqrt``. These ``scalar`` versions
+  use the ``s`` suffix, yielding function names like ``sins``,
+  ``coss``, and ``sqrts``.
 
 * ``types.h``: declares commonly used types. These include the
   ``vector`` and ``quat`` (quaternion) types. They are defined here
@@ -268,17 +284,14 @@ Graphics
 The graphics module is currently written using the SDL_, OpenGL_, and
 GLU_ interfaces. The interface (``gfx.h``) is currently simple, but
 will have to be extended as features are added. In particular,
-textures and lighting have yet to be implemented (other than the
-single light source originating from the camera - a temporary
-"solution").
+lighting has yet to be implemented (other than the single light
+source originating from the camera - a temporary "solution").
 
 Some implementation-independent graphics functions are also provided.
-Currently these are just the two functions called during
-initialization and shutdown, but at some point these will include
-functions for passing around level geometry data, as well as functions
-for activating predefined special effects. The level load function
-will also be moved here (or copied here - it may be desirable to allow
-an implementation to load levels in file formats supported by it).
+Currently these are just functions for loading geometry and texture
+data into the graphics module in preparation for rendering, but more
+functions will be added later for other things such as displaying
+graphical effects and user interface components.
 
 .. _SDL: http://www.libsdl.org/
 .. _OpenGL: http://www.opengl.org/
@@ -344,9 +357,8 @@ parameter to equal one or both of their source parameters::
     /* v1 now contains {-4.0f, 8.0f, -4.0f}. */
 
 `The Lua environment`_ is also enhanced with some vector functions.
-See below for some examples.
-
-Quaternion and matrix functionality may follow later on.
+See below for some examples. Quaternion and matrix functionality may
+follow later on.
 
 Physics
 -------
@@ -412,6 +424,39 @@ these, is possible. Examples of the first two are already included.
 A similar means of providing sound and texture data may be added later
 on.
 
+Models
+------
+Level / polymodel data table passed from Lua to C::
+
+    {
+        ['vertices'] = vertices;
+        ['faces'] = faces;
+    }
+
+where
+
+::
+
+    vertices = { {x1,y1,z1}, {x2,y2,z2}, ... }
+    faces = { v1, v2, ..., key = value, ... }
+
+``key`` and ``value`` can be:
+
+* ``['normal'] = {x,y,z}``: face normal.
+* ``['texture'] = handle``: texture handle as provided by the graphics
+  subsystem.
+
+``v1``, ``v2``, ... are tables containing per-vertex data:
+
+* ``['index'] = i``: vertex index.
+* ``['normal'] = {x,y,z}``: per-vertex face normal.
+* ``['texcoords'] = {s, t}``: texture coordinates.
+* ``['material'] = handle``: material handle as provided by the
+  graphics subsystem.
+
+Lua functions to load levels and models will be provided later
+(or sooner), in a way similar to the texture functions (see below).
+
 Vectors
 -------
 Vectors can be created and used like this::
@@ -442,6 +487,55 @@ Sounds
     audio.stop(handle)
     -- unload it
     audio.free('mysoundhandlename')
+
+Textures
+--------
+To load a texture into the graphics module and prepare it for
+rendering::
+
+    handle = gfx.texture({
+        width = w;
+        height = h;
+        flags = 0; -- to be defined
+        data = d;
+    })
+
+where ``w`` and ``h`` are integers and ``d`` is a Lua string
+containing the pixel data in RGB format, one byte per color component.
+
+The handle should be kept in the Lua environment somewhere until it's
+no longer needed - when the handle gets garbage-collected, the
+corresponding texture goes with it. The game keeps the level data
+structure (which contains references to these handles) around and so
+this need not be done explicitly.
+
+Lua texture loaders can already be created and used this way; for
+example::
+
+    handle = gfx.texture(loadfile('mytexloader.lua')(args))
+
+Materials
+---------
+Materials can be created and used in a way similar to textures::
+
+    handle = gfx.material({
+        flags = 0;
+        color = {r,g,b};
+        specular = {sr,sg,sb};
+        alpha = 1;
+    })
+    handle2 = gfx.material({
+        flags = gfx.MATERIAL_FULL;
+        ambient = {ar,ag,ab};
+        diffuse = {dr,dg,db};
+        specular = {sr,sg,sb};
+        emission = {er,eg,eb};
+        shininess = 1;
+        alpha = 1;
+    })
+
+**NOTE**: The material system is likely to change later, more so than
+the rest of the graphics subsystem.
 
 Miscellaneous Lua functions
 ---------------------------

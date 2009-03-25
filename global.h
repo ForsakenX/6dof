@@ -18,10 +18,23 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
 extern lua_State *L1;
 extern int debug_level;
 
-#endif /* GLOBALS_H */
+/* Checks whether a field has the given type. */
+#define LUA_ISFIELDTYPE(L, index, name, type) \
+	({ \
+		int _b; \
+		lua_getfield(L, index, name); \
+		_b = lua_is ## type(L, -1); \
+		lua_pop(L, 1); \
+		_b; \
+	})
+
+/* Integer version of lua_getfield(). */
+void lua_getfieldi(lua_State *L, int index, int n);
+
+#endif /* GLOBAL_H */

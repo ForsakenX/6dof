@@ -48,9 +48,12 @@ static int lua_debug_level(lua_State *L)
 	}
 	else if (argc == 1)
 	{
-		/* No arguments -> query debug level */
+		/* One argument -> change debug level */
 		n = lua_tointeger(L, 1);
-		DEBUG(1, "Debug level set to %d", n);
+		if (n + debug_level > 0)
+		{
+			DEBUG(0, "Debug level set to %d\n", n);
+		}
 		debug_level = n;
 	}
 	else
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
 	err = init(argc, argv);
 	if (err)
 		return err;
-	if (!gfx->load_level(config_get_str("level")))
+	if (!load_level(config_get_str("level")))
 	{
 		while (!game_main());
 	}

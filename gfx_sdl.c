@@ -20,48 +20,41 @@
 
 #include "common.h"
 
-#define MAX_VERTS 16384
-#define MAX_FACES 16384
-#define MAX_VERTS_PER_FACE 10
-
-typedef struct
-{
-	int type;
-	short nverts;
-	short verts[MAX_VERTS_PER_FACE];
-	vector normal;
-} face;
-
-typedef struct
-{
-	int id;
-	int nverts;
-	vector verts[MAX_VERTS];
-	int nfaces;
-	face faces[MAX_FACES];
-} model;
-
-model level;
-
-#if 0
-int num_models = 0;
-static model models[32];
-#endif
+int nmaterials;
+struct material *materials;
+int last_material;
 
 static struct gfx_scene scene;
 
 static SDL_Surface *screen;
 
 static int set_screen(int width, int height, int bpp);
+static int prepare_material(const struct material *m);
+
+static void init_materials(void)
+{
+	struct material m =
+	{
+		 .flags = 0
+		,{
+			.simple = {
+				 .color = { 0.5f, 0.5f, 0.5f }
+				,.alpha = 1.0f
+				,.specular = 1.0f
+			}
+		}
+	};
+
+	nmaterials = 0;
+	materials = NULL;
+	prepare_material(&m);
+	last_material = -1;
+}
 
 static void init_lighting(void)
 {
-	//float ambdiff[] = {0.8f,0.8f,0.8f,1.0f};
-	float ambdiff[] = {0.5f,0.5f,0.5f,1.0f};
-	float spec[] = {0.0f,0.0f,0.0f,1.0f};
 	glShadeModel(GL_SMOOTH);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ambdiff);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, spec);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
 	glMateriali(GL_FRONT, GL_SHININESS, 10);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -70,157 +63,182 @@ static void init_lighting(void)
 static void do_lighting(void)
 {
 	vector *cam_pos = &scene.camera.pos;
-	float ambient[] = {0.5f,0.5f,0.5f,1.0f};
+	float ambient[] = {0.2f,0.2f,0.2f,1.0f};
 	float lightpos[] = {cam_pos->x,cam_pos->y,cam_pos->z,1};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 }
 
-/* [-0, +0, -] */
-static void add_verts_from_lua_array(model *m, lua_State *L, int index)
+static int valid_normal(vector *v)
 {
-	int n;
-	vector *v;
-
-	DEBUG(6, "Adding vertices from Lua array at index %d\n", index);
-	if (index < 0)
-		/* Index counts from top of stack. */
-		index--;
-	for (n=1;;n++)
-	{
-		lua_pushinteger(L, n);
-		lua_gettable(L, index);
-		if (lua_istable(L, -1))
-		{
-			v = &m->verts[m->nverts];
-			lua_pushinteger(L, 1);
-			lua_gettable(L, -2);
-			v->x = (scalar) lua_tonumber(L, -1);
-			lua_pop(L, 1);
-			lua_pushinteger(L, 2);
-			lua_gettable(L, -2);
-			v->y = (scalar) lua_tonumber(L, -1);
-			lua_pop(L, 1);
-			lua_pushinteger(L, 3);
-			lua_gettable(L, -2);
-			v->z = (scalar) lua_tonumber(L, -1);
-			lua_pop(L, 2);
-			DEBUG(6, "Added vertex (%g, %g, %g)\n", v->x, v->y, v->z);
-			m->nverts++;
-		}
-		else
-		{
-			lua_pop(L, 1);
-			break;
-		}
-	}
-	DEBUG(6, "%d vertices added, current total is %d\n", n-1, m->nverts);
+	if (isnan(v->x))
+		return 0;
+	if (vec_mag2(v) < 0.001f)
+		return 0;
+	return 1;
 }
 
-/* [-0, +0, -] */
-static void add_faces_from_lua_array(model *m, lua_State *L, int index)
+static void draw_basis(void)
 {
-	int n, i;
-	face *f;
+	DEBUG(10, "Drawing basis\n");
+	glBegin(GL_LINES);
+	glVertex3i(-32768, 0, 0);
+	glVertex3i(32767, 0, 0);
+	glVertex3i(0, -32768, 0);
+	glVertex3i(0, 32767, 0);
+	glVertex3i(0, 0, -32768);
+	glVertex3i(0, 0, 32767);
+	glEnd();
+}
 
-	DEBUG(6, "Adding faces from Lua array at index %d\n", index);
-	if (index < 0)
-		/* Index counts from top of stack. */
-		index--;
-	for (n=1;;n++)
+/* TODO (low priority): improve */
+static void draw_normals(const struct mesh *m)
+{
+	int i, j;
+
+	DEBUG(10, "Drawing normals for mesh %p\n", m);
+	for (i=0; i < m->nfaces; i++)
 	{
-		lua_pushinteger(L, n);
-		lua_gettable(L, index);
-		if (lua_istable(L, -1))
+		if (valid_normal(&m->faces[i].normal))
 		{
-			f = &m->faces[m->nfaces];
-			f->normal.x = NAN;
-			DEBUG(6, "Adding face [");
-			f->nverts = 0;
-			for (i=1;;i++)
+			glBegin(GL_LINES);
+			for (j=0; j < m->faces[i].nverts; j++)
 			{
-				lua_pushinteger(L, i);
-				lua_gettable(L, -2);
-				if (lua_isnumber(L, -1))
+				glVertex3f(
+					 m->verts[m->faces[i].verts[j].index].x
+					,m->verts[m->faces[i].verts[j].index].y
+					,m->verts[m->faces[i].verts[j].index].z
+				);
+				glVertex3f(
+					 m->faces[i].normal.x*100.0f+m->verts[m->faces[i].verts[j].index].x
+					,m->faces[i].normal.y*100.0f+m->verts[m->faces[i].verts[j].index].y
+					,m->faces[i].normal.z*100.0f+m->verts[m->faces[i].verts[j].index].z
+				);
+			}
+			glEnd();
+		}
+	}
+}
+
+static void render_setmaterial(const struct material *m)
+{
+	float f[4];
+
+	DEBUG(7, "gfx_sdl: render_setmaterial(%p)\n", m);
+	if (m->flags & MATERIAL_FULL)
+	{
+		f[3] = m->full.alpha;
+		MEMCPY(f, m->full.ambient, 3);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, f);
+		MEMCPY(f, m->full.diffuse, 3);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, f);
+		MEMCPY(f, m->full.specular, 3);
+		glMaterialfv(GL_FRONT, GL_SPECULAR, f);
+		MEMCPY(f, m->full.emission, 3);
+		glMaterialfv(GL_FRONT, GL_EMISSION, f);
+		glMaterialf(GL_FRONT, GL_SHININESS, m->full.shininess * 128.0f);
+	}
+	else
+	{
+		MEMCPY(f, m->simple.color, 3);
+		f[3] = m->simple.alpha;
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, f);
+		MEMCPY(f, m->simple.specular, 3);
+		glMaterialfv(GL_FRONT, GL_SPECULAR, f);
+		glMateriali(GL_FRONT, GL_SHININESS, 10);
+	}
+}
+
+static void draw_mesh(const struct mesh *m)
+{
+	int i, j;
+
+	DEBUG(9, "Drawing mesh %p\n", m);
+	if (m->gfx_handle >= 0)
+	{
+		DEBUG(9, "Using display list %d for mesh %p\n", m->gfx_handle, m);
+		glCallList(m->gfx_handle);
+	}
+	else
+	{
+		DEBUG(9, "Mesh %p has no display list, drawing\n", m);
+		for (i=0; i < m->nfaces; i++)
+		{
+			if (m->faces[i].texture >= 0)
+				glBindTexture(GL_TEXTURE_2D, m->faces[i].texture);
+			glBegin(GL_POLYGON);
+			for (j=0; j < m->faces[i].nverts; j++)
+			{
+				if (m->faces[i].verts[j].material != last_material)
 				{
-					f->verts[f->nverts] = ((short) lua_tointeger(L, -1)) - 1;
-					lua_pop(L, 1);
-					DEBUG(6, "%s(%g, %g, %g)", (f->nverts?", ":"")
-						,m->verts[f->verts[f->nverts]].x
-						,m->verts[f->verts[f->nverts]].y
-						,m->verts[f->verts[f->nverts]].z
+					render_setmaterial(
+						&materials[m->faces[i].verts[j].material]
 					);
-					f->nverts++;
+					last_material = m->faces[i].verts[j].material;
 				}
-				else if (lua_istable(L, -1) && lua_objlen(L, -1) == 3)
+				if (valid_normal(&m->faces[i].verts[j].normal))
 				{
-					/* Surface normal. */
-					lua_pushinteger(L, 1);
-					lua_gettable(L, -2);
-					f->normal.x = lua_tonumber(L, -1);
-					lua_pop(L, 1);
-					lua_pushinteger(L, 2);
-					lua_gettable(L, -2);
-					f->normal.y = lua_tonumber(L, -1);
-					lua_pop(L, 1);
-					lua_pushinteger(L, 3);
-					lua_gettable(L, -2);
-					f->normal.z = lua_tonumber(L, -1);
-					lua_pop(L, 2);
-					DEBUG(6, "%s:normal(%g, %g, %g)", (f->nverts?", ":"")
-						,f->normal.x, f->normal.y, f->normal.z
+					glNormal3f(
+						 m->faces[i].verts[j].normal.x
+						,m->faces[i].verts[j].normal.y
+						,m->faces[i].verts[j].normal.z
 					);
 				}
 				else
 				{
-					lua_pop(L, 1);
-					break;
+					glNormal3f(
+						 m->faces[i].normal.x
+						,m->faces[i].normal.y
+						,m->faces[i].normal.z
+					);
 				}
-			}
-			DEBUG(6, "]\n");
-			lua_pop(L, 1);
-			m->nfaces++;
-		}
-		else
-		{
-			lua_pop(L, 1);
-			break;
-		}
-	}
-	DEBUG(6, "%d faces added, current total is %d\n", n-1, m->nfaces);
-}
-
-static int create_dl(model *m)
-{
-	int id;
-	int i, j;
-
-	id = glGenLists(1);
-	glNewList(id, GL_COMPILE);
-	for (i=0; i < m->nfaces; i++)
-	{
-		glBegin(GL_POLYGON);
-		for (j=0; j < m->faces[i].nverts; j++)
-		{
-			if (!isnan(m->faces[i].normal.x))
-			{
-				glNormal3f(
-					 m->faces[i].normal.x
-					,m->faces[i].normal.y
-					,m->faces[i].normal.z
+				glTexCoord2f(
+					 m->faces[i].verts[j].texcoords.s
+					,m->faces[i].verts[j].texcoords.t
+				);
+				glVertex3f(
+					 m->verts[m->faces[i].verts[j].index].x
+					,m->verts[m->faces[i].verts[j].index].y
+					,m->verts[m->faces[i].verts[j].index].z
 				);
 			}
-			glVertex3f(
-				 m->verts[m->faces[i].verts[j]].x
-				,m->verts[m->faces[i].verts[j]].y
-				,m->verts[m->faces[i].verts[j]].z
+			glEnd();
+		}
+		DEBUG(9, "%d faces processed\n", i);
+		if (config_get_int("drawnormals"))
+			draw_normals(m);
+	}
+}
+
+static void draw_model(const struct model *m)
+{
+	int isnull;
+	int i;
+
+	DEBUG(9, "Drawing model %p\n", m);
+	for (i=0; i < m->ngroups; i++)
+	{
+		if (!vec_isnull(&m->offsets[i]))
+			isnull = 1;
+		else
+			isnull = 0;
+		if (isnull)
+		{
+			glPushMatrix();
+			glTranslatef(
+				 m->offsets[i].x
+				,m->offsets[i].y
+				,m->offsets[i].z
+			);
+			DEBUG(10, "Offset for model group %d is (%g, %g, %g)\n",
+				i, m->offsets[i].x, m->offsets[i].y, m->offsets[i].z
 			);
 		}
-		glEnd();
+		draw_mesh(&m->groups[i]);
+		if (isnull)
+			glPopMatrix();
 	}
-	glEndList();
-
-	return id;
+	DEBUG(9, "%d model groups processed\n", i);
 }
 
 static int init(void)
@@ -241,6 +259,7 @@ static int init(void)
 	DEBUG(2, "gfx_sdl: using video driver \"%s\"\n",
 		SDL_VideoDriverName(drv_name, 64));
 	memset(&scene, 0, sizeof(struct gfx_scene));
+	init_materials();
 	return 0;
 }
 
@@ -305,95 +324,104 @@ static int set_screen(int width, int height, int bpp)
 	gluPerspective(70, 4.0f/3.0f, -1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GEQUAL);
-	glPolygonMode(GL_FRONT, GL_LINE);
+	glFrontFace(GL_CW);
+	glPolygonMode(GL_BACK, GL_LINE);
 	init_lighting();
 	return 0;
 }
 
-static void set_window_title(const char *title, const char *icon)
+static void set_title(const char *title, const char *icon)
 {
+	DEBUG(5, "gfx_sdl: set_title(\"%s\", \"%s\")\n", title, icon);
 	SDL_WM_SetCaption(title, icon);
 }
 
-static int load_level(char *filename)
+static int prepare_mesh(const struct mesh *m)
 {
-	int n;
+	int id;
 
-	DEBUG(3, "gfx_sdl: load_level(\"%s\")\n", filename);
-	/*
-	f = io_open_file(filename, "r");
-	if (!f)
-	{
-		ERROR("couldn't open level file %s", filename);
-		return 1;
-	}
-	*/
-	n = lua_gettop(L1);
-	if (luaL_dofile(L1, filename))
-	{
-		ERROR("couldn't load level - %s", lua_tostring(L1, -1));
-		return 1;
-	}
-	if (lua_gettop(L1) != n+1)
-	{
-		ERROR("level file must provide one table containing level data");
-		return 1;
-	}
-	lua_getfield(L1, -1, "vertices");
-	if (!lua_istable(L1, -1))
-	{
-		ERROR("no vertex data provided by level file");
-		return 1;
-	}
-	add_verts_from_lua_array(&level, L1, -1);
-	lua_pop(L1, 1);
-	lua_getfield(L1, -1, "faces");
-	if (!lua_istable(L1, -1))
-	{
-		ERROR("no face (polygon) data provided by level file");
-		return 1;
-	}
-	add_faces_from_lua_array(&level, L1, -1);
-	lua_pop(L1, 2);
-	level.id = create_dl(&level);
-	return 0;
+	id = glGenLists(1);
+	DEBUG(5, "gfx_sdl: prepare_mesh(%p) = %d\n", m, id);
+	glNewList(id, GL_COMPILE);
+	draw_mesh(m);
+	glEndList();
+
+	return id;
 }
 
-#if 0
-static int load_model(char *filename)
+static void release_mesh(int id)
 {
-	int dl;
-	DEBUG(5, "gfx_sdl: load_model(\"%s\")\n", filename);
-	if (num_models >= 32)
-		return 1;
-	dl = glGenLists(1);
-	glNewList(dl, GL_COMPILE);
-	/* ... */
-	models[num_models].id = dl;
-	num_models++;
-	return 0;
+	DEBUG(5, "gfx_sdl: release_mesh(%d)\n", id);
+	glDeleteLists(id, 1);
 }
-#endif
+
+static int prepare_texture(const struct image *img)
+{
+	int id;
+
+	glGenTextures(1, (GLuint *) &id);
+	DEBUG(5, "gfx_sdl: prepare_texture(%p) = %d\n", img, id);
+	DEBUG(5, "width = %d, height = %d\n", img->width, img->height);
+	glBindTexture(GL_TEXTURE_2D, (GLuint) id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return id;
+}
+
+static void release_texture(int id)
+{
+	DEBUG(5, "gfx_sdl: release_texture(%d)\n", id);
+	glDeleteTextures(1, (GLuint *) &id);
+}
+
+static int prepare_material(const struct material *m)
+{
+	DEBUG(5, "gfx_sdl: prepare_material(%p) = %d\n", m, nmaterials);
+	REALLOC(materials, nmaterials + 1);
+	MEMCPY(&materials[nmaterials], m, 1);
+	nmaterials++;
+	return nmaterials - 1;
+}
+
+static void release_material(int id)
+{
+	DEBUG(5, "gfx_sdl: release_material(%d)\n", id);
+	nmaterials--;
+	REALLOC(materials, nmaterials);
+}
+
+static void set_level(struct model *m)
+{
+	DEBUG(4, "gfx_sdl: set_level(%p)\n", m);
+	scene.level = m;
+}
 
 static struct gfx_scene *get_scene(void)
 {
-	DEBUG(10, "gfx_sdl: get_scene() = %#010tx\n", &scene);
+	DEBUG(10, "gfx_sdl: get_scene() = %p\n", &scene);
 	return &scene;
 }
 
 static int render(void)
 {
-	int i, j;
 	vector cam_pos;
 	vector cam_fvec = { 0.0f, 0.0f, 1.0f };
 	vector cam_uvec = { 0.0f, 1.0f, 0.0f };
-	int draw_normals = config_get_int("drawnormals");
 
 	DEBUG(8, "gfx_sdl: render()\n");
+	/* Clear the display. This may be removed when the camera
+	 * is known to be within an enclosed model. */
 	glClearColor(0.0f, 0.0f, 0.25f, 0.0f);
 	glClearDepth(-1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_TEXTURE_2D);
 	do_lighting();
+	/* Set up the camera. */
 	cam_pos = scene.camera.pos;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -411,43 +439,54 @@ static int render(void)
 		,cam_uvec.x, cam_uvec.y, -cam_uvec.z
 	);
 	glColor3f(1.0f, 1.0f, 1.0f);
+	/* Make the Z axis point into the screen. */
 	glScalef(1.0f, 1.0f, -1.0f);
-	glCallList(level.id);
-	for (i=0; i<level.nfaces; i++)
-	{
-		if (draw_normals && !isnan(level.faces[i].normal.x))
-		{
-			glBegin(GL_LINES);
-			for (j=0; j<level.faces[i].nverts; j++)
-			{
-				glVertex3f(
-					 level.verts[level.faces[i].verts[j]].x
-					,level.verts[level.faces[i].verts[j]].y
-					,level.verts[level.faces[i].verts[j]].z
-				);
-				glVertex3f(
-					 level.faces[i].normal.x*100.0f+level.verts[level.faces[i].verts[j]].x
-					,level.faces[i].normal.y*100.0f+level.verts[level.faces[i].verts[j]].y
-					,level.faces[i].normal.z*100.0f+level.verts[level.faces[i].verts[j]].z
-				);
-			}
-			glEnd();
-		}
-	}
+	/* Draw the scene. */
+	if (config_get_int("drawbasis"))
+		draw_basis();
+	draw_model(scene.level);
+	/* for (i=0; i < scene.num_objects; i++)
+		draw_model(&scene.objects[i].model); */
 	glFlush();
 	SDL_GL_SwapBuffers();
+	glDisable(GL_TEXTURE_2D);
 	return 0;
 }
 
+static void flip_vert(char *pixels, int width, int height)
+{
+	char row[width*3];
+	int i;
+
+	for (i=0; i < height/2; i++)
+	{
+		MEMCPY(row, &pixels[i*width*3], width*3);
+		MEMCPY(&pixels[i*width*3], &pixels[(height-i-1)*width*3], width*3);
+		MEMCPY(&pixels[(height-i-1)*width*3], row, width*3);
+	}
+}
+
+static void read_pixels(char *data, int x, int y, int width, int height, int origin)
+{
+	glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+	if (origin == UPPER_LEFT)
+		flip_vert(data, width, height);
+}
 
 struct gfx_driver gfx_sdl =
 {
 	.init = init,
 	.shutdown = shutdown,
 	.set_screen = set_screen,
-	.set_window_title = set_window_title,
-	.load_level = load_level,
-	/*.load_model = load_model,*/
+	.set_title = set_title,
+	.prep_mesh = prepare_mesh,
+	.release_mesh = release_mesh,
+	.prep_texture = prepare_texture,
+	.release_texture = release_texture,
+	.prep_material = prepare_material,
+	.release_material = release_material,
+	.set_level = set_level,
 	.get_scene = get_scene,
-	.render = render
+	.render = render,
+	.read_pixels = read_pixels
 };

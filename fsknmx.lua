@@ -20,17 +20,115 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local textures = {}
+local matlist = {}
+local materials = {}
 local verts = {}
+local texcoords = {}
 local triangles = {}
 local vert_offset = 1
+
+-- Functions for finding forsaken texture files which tend to differ in case
+local function capitalize(str)
+	return str:sub(1, 1):upper() .. str:sub(2):lower()
+end
+
+local function tryname(name)
+	-- TODO: portable path separator?
+	local f = io.open(config.texdir .. '/' .. name, 'rb')
+	if f then f:close() end
+	return f ~= nil
+end
+
+local function findtex(name)
+	local f
+	local t = { name:lower(), name:upper(), capitalize(name) }
+	for _, fname in ipairs(t) do
+		ok = tryname(fname)
+		if ok then
+			-- TODO: portable path separator?
+			return config.texdir .. '/' .. fname
+		end
+	end
+	error("couldn't find texture " .. name)
+end
+
+local function rgba(n)
+	local b = bitand(n, 0xff) / 255
+	n = shr(n, 8)
+	local g = bitand(n, 0xff) / 255
+	n = shr(n, 8)
+	local r = bitand(n, 0xff) / 255
+	n = shr(n, 8)
+	local a = bitand(n, 0xff) / 255
+	return r,g,b,a
+end
+
+local function getmat(color, specular)
+	for c, x in pairs(matlist) do
+		if c == color then
+			for s, m in pairs(x) do
+				if s == specular then
+					return m
+				end
+			end
+		end
+	end
+	return nil
+end
+
+local function addmat(color, specular, m)
+	if not matlist[color] then
+		matlist[color] = {}
+	end
+	matlist[color][specular] = m
+end
+
+local function material(color, specular)
+	local r,g,b,a = rgba(color)
+	local sr,sg,sb,sa = rgba(bitor(specular, shl(255, 24)))
+	local m = getmat(color, specular)
+	if m then
+		return m
+	else
+		c = {r,g,b,a}
+		s = {sr,sg,sb,sa}
+		m = gfx.material({
+			flags = 0;
+			color = c;
+			specular = s;
+			alpha = 1;
+		})
+		addmat(color, specular, m)
+	end
+	return m
+end
+
+local function face(verts, normal, texture)
+	local v0 = verts[1] + vert_offset
+	local v1 = verts[2] + vert_offset
+	local v2 = verts[3] + vert_offset
+	return {
+		{ index = v0, texcoords = texcoords[v0], material = materials[v0] };
+		{ index = v1, texcoords = texcoords[v1], material = materials[v1] };
+		{ index = v2, texcoords = texcoords[v2], material = materials[v2] };
+		normal = normal;
+		texture = texture;
+	}
+end
 
 local f = binfile(io.open(config.lvlfile, 'rb'))
 local magic, ver = f:binread('ii')
 if magic ~= 0x584a5250 then
 	error('not an MX file')
 end
--- Read and forget texture file names
-for i = 1, f:binread('h') do f:binread('z') end
+-- Read texture file names and prepare the textures for rendering
+for i = 1, f:binread('h') do
+	local texname = f:binread('z')
+	table.insert(textures,
+		gfx.texture(loadfile('bmp.lua')(findtex(texname)))
+	)
+end
 -- For each group...
 for i = 1, f:binread('h') do
 	local verts_in_this_group = 0
@@ -40,8 +138,10 @@ for i = 1, f:binread('h') do
 		f:binread('i')
 		-- For each vertex...
 		for i = 1, f:binread('h') do
-			local v,blah,color,specular,tu,tv = f:binread('vIIIII')
+			local v,blah,color,specular,tu,tv = f:binread('vIIIff')
 			table.insert(verts, v)
+			table.insert(materials, material(color, specular))
+			table.insert(texcoords, {tu, tv})
 			verts_in_this_group = verts_in_this_group + 1
 		end
 		-- For each texture group...
@@ -50,7 +150,7 @@ for i = 1, f:binread('h') do
 			-- For each triangle...
 			for i = 1, f:binread('h') do
 				local v0,v1,v2,pad16,normal = f:binread('hhhhv')
-				table.insert(triangles, {v0+vert_offset,v1+vert_offset,v2+vert_offset,normal})
+				table.insert(triangles, face({v0, v1, v2}, normal, textures[tnum+1]))
 			end
 		end
 	end

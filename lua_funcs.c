@@ -34,6 +34,124 @@
 
 #endif /* !STANDALONE */
 
+/* Integer / bit operations. */
+static int shiftleft(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	int b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for shift left function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkint(L, 2);
+	lua_settop(L, 0);
+	lua_pushinteger(L, a << b);
+
+	return 1;
+}
+
+static int shiftright(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	int b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for shift right function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkint(L, 2);
+	lua_settop(L, 0);
+	lua_pushinteger(L, a >> b);
+
+	return 1;
+}
+
+static int testbit(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	int b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for shift right function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkint(L, 2);
+	lua_settop(L, 0);
+	lua_pushboolean(L, a & (1 << (b-1)));
+
+	return 1;
+}
+
+static int bitand(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	lua_Integer b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for bitwise AND function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkinteger(L, 2);
+	lua_settop(L, 0);
+	lua_pushinteger(L, a & b);
+
+	return 1;
+}
+
+static int bitor(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	lua_Integer b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for bitwise OR function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkinteger(L, 2);
+	lua_settop(L, 0);
+	lua_pushinteger(L, a | b);
+
+	return 1;
+}
+
+static int bitxor(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+	lua_Integer b;
+
+	n = lua_gettop(L);
+	if (n != 2)
+		return luaL_error(L, "expected 2 arguments for bitwise XOR function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	b = luaL_checkinteger(L, 2);
+	lua_settop(L, 0);
+	lua_pushinteger(L, a ^ b);
+
+	return 1;
+}
+
+static int bitnot(lua_State *L)
+{
+	int n;
+	lua_Integer a;
+
+	n = lua_gettop(L);
+	if (n != 1)
+		return luaL_error(L, "expected 1 argument for bitwise NOT function (got %d)", n);
+	a = luaL_checkinteger(L, 1);
+	lua_settop(L, 0);
+	lua_pushinteger(L, ~a);
+
+	return 1;
+}
+
 #if 0
 /* -1 = unknown, -2 = invalid format string. */
 static int calcsize(const char *fmt)
@@ -363,7 +481,14 @@ static int binread(lua_State *L)
 
 static const struct luaL_Reg funcs[] =
 {
-	 { "unpack", unpack }
+	 { "shl", shiftleft }
+	,{ "shr", shiftright }
+	,{ "test", testbit }
+	,{ "bitand", bitand }
+	,{ "bitor", bitor }
+	,{ "bitxor", bitxor }
+	,{ "bitnot", bitnot }
+	,{ "unpack", unpack }
 	,{ "binread", binread }
 	,{ NULL, NULL }
 };

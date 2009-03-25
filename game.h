@@ -25,6 +25,7 @@
 
 int game_init(void);
 void game_shutdown(void);
+int load_level(const char *filename);
 int game_main(void);
 
 #endif /* GAME_H */
