@@ -6,6 +6,11 @@ height = 768
 bpp = 24
 drawnormals = false
 drawbasis = false
+stereo = false
+stereoeyesep = 50
+stereofocaldist = 500
+-- Temporary - materials make things really slow right now
+materials = false
 
 -- Audio configuration
 audiofreq = 44100

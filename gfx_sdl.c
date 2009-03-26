@@ -169,7 +169,8 @@ static void draw_mesh(const struct mesh *m)
 			glBegin(GL_POLYGON);
 			for (j=0; j < m->faces[i].nverts; j++)
 			{
-				if (m->faces[i].verts[j].material != last_material)
+				if (config_get_int("materials")
+					&& m->faces[i].verts[j].material != last_material)
 				{
 					render_setmaterial(
 						&materials[m->faces[i].verts[j].material]
@@ -318,12 +319,13 @@ static int set_screen(int width, int height, int bpp)
 	}
 	SDL_WM_SetCaption("6dof", "6dof");
 	screen = new_screen;
+	/*
 	glViewport(0, 0, (GLsizei) width, (GLsizei) height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(70, 4.0f/3.0f, -1.0f, 1.0f);
+	*/
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GEQUAL);
 	glFrontFace(GL_CW);
 	glPolygonMode(GL_BACK, GL_LINE);
 	init_lighting();
@@ -407,46 +409,127 @@ static struct gfx_scene *get_scene(void)
 	return &scene;
 }
 
-static int render(void)
+/* Make preparations for rendering a frame. */
+static void render_prepare(void)
 {
+	glEnable(GL_TEXTURE_2D);
+	do_lighting();
+}
+
+#define NORMAL 0
+#define LEFT 1
+#define RIGHT 2
+
+static void render_setview(int mode)
+{
+	int width, height;
+	float aspect;
+	float halfwidth;
+	float shift;
+	float top, bottom, left, right;
+	float eyesep;
+	float offset;
 	vector cam_pos;
 	vector cam_fvec = { 0.0f, 0.0f, 1.0f };
 	vector cam_uvec = { 0.0f, 1.0f, 0.0f };
+	vector cam_offset = { 1.0f, 0.0f, 0.0f };
 
-	DEBUG(8, "gfx_sdl: render()\n");
-	/* Clear the display. This may be removed when the camera
-	 * is known to be within an enclosed model. */
-	glClearColor(0.0f, 0.0f, 0.25f, 0.0f);
-	glClearDepth(-1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_TEXTURE_2D);
-	do_lighting();
-	/* Set up the camera. */
+	width = config_get_int("width");
+	height = config_get_int("height");
+	aspect = (float) width / height;
+	halfwidth = tanf(70.0f*(float)M_PI_2/180.0f);
+	eyesep = config_get_float("stereoeyesep");
 	cam_pos = scene.camera.pos;
+	vec_rotate(&cam_fvec, &scene.camera.orient);
+	vec_rotate(&cam_uvec, &scene.camera.orient);
+	vec_rotate(&cam_offset, &scene.camera.orient);
+	if (mode == RIGHT)
+	{
+		cam_offset.x *= eyesep / 2;
+		cam_offset.y *= eyesep / 2;
+		cam_offset.z *= eyesep / 2;
+	}
+	else
+	{
+		cam_offset.x *= -eyesep / 2;
+		cam_offset.y *= -eyesep / 2;
+		cam_offset.z *= -eyesep / 2;
+	}
+	glViewport(0, 0, (GLsizei) width, (GLsizei) height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	if (mode == LEFT || mode == RIGHT)
+		offset = 0.5f * eyesep / config_get_float("stereofocaldist");
+	if (mode == LEFT)
+	{
+		left = -aspect * halfwidth + offset;
+		right = aspect * halfwidth + offset;
+	}
+	else if (mode == RIGHT)
+	{
+		left = -aspect * halfwidth - offset;
+		right = aspect * halfwidth - offset;
+	}
+	else
+	{
+		left = -aspect * halfwidth;
+		right = aspect * halfwidth;
+	}
+	bottom = -halfwidth;
+	top = halfwidth;
+	glFrustum(left, right, bottom, top, 1.0f, 32767.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	vec_rotate(&cam_fvec, &scene.camera.orient);
-	vec_add(&cam_fvec, &cam_fvec, &cam_pos);
-	vec_rotate(&cam_uvec, &scene.camera.orient);
 	DEBUG(9, "cam_pos = (%g, %g, %g)\ncam_fvec = (%g, %g, %g)\ncam_uvec = (%g, %g, %g)\n"
 		, cam_pos.x, cam_pos.y, cam_pos.z
 		, cam_fvec.x, cam_fvec.y, cam_fvec.z
 		, cam_uvec.x, cam_uvec.y, cam_uvec.z
 	);
+	vec_add(&cam_pos, &cam_pos, &cam_offset);
 	gluLookAt(
 		 cam_pos.x, cam_pos.y, -cam_pos.z
-		,cam_fvec.x, cam_fvec.y, -cam_fvec.z
+		,cam_fvec.x+cam_pos.x, cam_fvec.y+cam_pos.y, -cam_fvec.z-cam_pos.z
 		,cam_uvec.x, cam_uvec.y, -cam_uvec.z
 	);
-	glColor3f(1.0f, 1.0f, 1.0f);
 	/* Make the Z axis point into the screen. */
 	glScalef(1.0f, 1.0f, -1.0f);
-	/* Draw the scene. */
+}
+
+static void render_draw(void)
+{
+	/* Clear the display. This may be removed when the camera
+	 * is known to be within an enclosed model. */
+	glColor3f(1.0f, 1.0f, 1.0f);
 	if (config_get_int("drawbasis"))
 		draw_basis();
 	draw_model(scene.level);
 	/* for (i=0; i < scene.num_objects; i++)
 		draw_model(&scene.objects[i].model); */
+}
+
+static int render(void)
+{
+	DEBUG(8, "gfx_sdl: render()\n");
+	render_prepare();
+	glClearColor(0.0f, 0.0f, 0.00f, 0.0f);
+	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (config_get_int("stereo"))
+	{
+		render_setview(LEFT);
+		glColorMask(1, 0, 0, 1);
+		render_draw();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		render_setview(RIGHT);
+		glColorMask(0, 1, 0, 1);
+		render_draw();
+		glColorMask(1, 1, 1, 1);
+	}
+	else
+	{
+		render_setview(NORMAL);
+		render_draw();
+	}
 	glFlush();
 	SDL_GL_SwapBuffers();
 	glDisable(GL_TEXTURE_2D);
