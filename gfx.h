@@ -23,6 +23,9 @@
 
 #include "common.h"
 
+/* Screen mode flags. */
+#define FULLSCREEN 1
+
 /* Screen/image origin specification. */
 #define UPPER_LEFT 0
 #define LOWER_LEFT 1
@@ -160,7 +163,7 @@ struct gfx_driver
 	 * conditions occur. */
 	void (*shutdown)(void);
 
-	int (*set_screen)(int width, int height, int bpp);
+	int (*set_screen)(int width, int height, int bpp, int flags);
 
 	/* Set the window title and icon name. */
 	void (*set_title)(const char *title, const char *icon);

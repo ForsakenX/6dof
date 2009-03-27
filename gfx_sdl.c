@@ -28,7 +28,7 @@ static struct gfx_scene scene;
 
 static SDL_Surface *screen;
 
-static int set_screen(int width, int height, int bpp);
+static int set_screen(int width, int height, int bpp, int flags);
 static int prepare_material(const struct material *m);
 
 static void init_materials(void)
@@ -245,13 +245,18 @@ static void draw_model(const struct model *m)
 static int init(void)
 {
 	char drv_name[64];
+	int flags;
+
 	DEBUG(3, "gfx_sdl: init()\n");
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
 	{
 		ERROR("SDL_Init(): %s", SDL_GetError());
 		return 1;
 	}
-	set_screen(0, 0, 0);
+	flags = 0;
+	if (config_get_int("fullscreen"))
+		flags |= FULLSCREEN;
+	set_screen(0, 0, 0, flags);
 	if (!screen)
 	{
 		ERROR("SDL_SetVideoMode(): %s", SDL_GetError());
@@ -261,6 +266,7 @@ static int init(void)
 		SDL_VideoDriverName(drv_name, 64));
 	memset(&scene, 0, sizeof(struct gfx_scene));
 	init_materials();
+
 	return 0;
 }
 
@@ -270,9 +276,11 @@ static void shutdown(void)
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-static int set_screen(int width, int height, int bpp)
+static int set_screen(int width, int height, int bpp, int flags)
 {
 	SDL_Surface *new_screen;
+	int sdlflags;
+
 	DEBUG(3, "gfx_sdl: set_screen(%d, %d, %d)\n", width, height, bpp);
 	if (width <= 0 || height <= 0 || bpp <= 0)
 	{
@@ -308,10 +316,10 @@ static int set_screen(int width, int height, int bpp)
 		return 1;
 	}
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	new_screen = SDL_SetVideoMode(
-		 width, height, bpp
-		,SDL_HWSURFACE | SDL_ANYFORMAT | SDL_DOUBLEBUF | SDL_OPENGL
-	);
+	sdlflags = SDL_HWSURFACE | SDL_ANYFORMAT | SDL_DOUBLEBUF | SDL_OPENGL;
+	if (flags & FULLSCREEN)
+		sdlflags |= SDL_FULLSCREEN;
+	new_screen = SDL_SetVideoMode(width, height, bpp, sdlflags);
 	if (!new_screen)
 	{
 		ERROR("SDL_SetVideoMode(): %s", SDL_GetError());
@@ -521,7 +529,12 @@ static int render(void)
 		render_draw();
 		glClear(GL_DEPTH_BUFFER_BIT);
 		render_setview(RIGHT);
-		glColorMask(0, 1, 0, 1);
+		switch (config_get_int("stereorightcolor"))
+		{
+			case 1:  glColorMask(0, 0, 1, 1); break; /* Blue  */
+			case 2:  glColorMask(0, 1, 1, 1); break; /* Cyan  */
+			default: glColorMask(0, 1, 0, 1); break; /* Green */
+		}
 		render_draw();
 		glColorMask(1, 1, 1, 1);
 	}

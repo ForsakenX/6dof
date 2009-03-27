@@ -1,12 +1,14 @@
 debug = 0
 
 -- Video configuration
+fullscreen = false
 width = 1024
 height = 768
 bpp = 24
 drawnormals = false
 drawbasis = false
 stereo = false
+stereorightcolor = 0 -- 0 = green, 1 = blue, 2 = cyan
 stereoeyesep = 50
 stereofocaldist = 500
 -- Temporary - materials make things really slow right now
