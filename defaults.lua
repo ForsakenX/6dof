@@ -9,8 +9,8 @@ drawnormals = false
 drawbasis = false
 stereo = false
 stereorightcolor = 0 -- 0 = green, 1 = blue, 2 = cyan
-stereoeyesep = 50
-stereofocaldist = 500
+stereoeyesep = 20
+stereofocaldist = 750
 -- Temporary - materials make things really slow right now
 materials = false
 

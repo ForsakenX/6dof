@@ -213,17 +213,17 @@ static void draw_mesh(const struct mesh *m)
 
 static void draw_model(const struct model *m)
 {
-	int isnull;
+	int translated;
 	int i;
 
 	DEBUG(9, "Drawing model %p\n", m);
 	for (i=0; i < m->ngroups; i++)
 	{
 		if (!vec_isnull(&m->offsets[i]))
-			isnull = 1;
+			translated = 1;
 		else
-			isnull = 0;
-		if (isnull)
+			translated = 0;
+		if (translated)
 		{
 			glPushMatrix();
 			glTranslatef(
@@ -236,7 +236,7 @@ static void draw_model(const struct model *m)
 			);
 		}
 		draw_mesh(&m->groups[i]);
-		if (isnull)
+		if (translated)
 			glPopMatrix();
 	}
 	DEBUG(9, "%d model groups processed\n", i);
@@ -430,6 +430,7 @@ static void render_prepare(void)
 
 static void render_setview(int mode)
 {
+	int stereo;
 	int width, height;
 	float aspect;
 	float halfwidth;
@@ -442,6 +443,7 @@ static void render_setview(int mode)
 	vector cam_uvec = { 0.0f, 1.0f, 0.0f };
 	vector cam_offset = { 1.0f, 0.0f, 0.0f };
 
+	stereo = config_get_int("stereo");
 	width = config_get_int("width");
 	height = config_get_int("height");
 	aspect = (float) width / height;
@@ -450,18 +452,21 @@ static void render_setview(int mode)
 	cam_pos = scene.camera.pos;
 	vec_rotate(&cam_fvec, &scene.camera.orient);
 	vec_rotate(&cam_uvec, &scene.camera.orient);
-	vec_rotate(&cam_offset, &scene.camera.orient);
-	if (mode == RIGHT)
+	if (stereo)
 	{
-		cam_offset.x *= eyesep / 2;
-		cam_offset.y *= eyesep / 2;
-		cam_offset.z *= eyesep / 2;
-	}
-	else
-	{
-		cam_offset.x *= -eyesep / 2;
-		cam_offset.y *= -eyesep / 2;
-		cam_offset.z *= -eyesep / 2;
+		vec_rotate(&cam_offset, &scene.camera.orient);
+		if (mode == RIGHT)
+		{
+			cam_offset.x *= eyesep / 2;
+			cam_offset.y *= eyesep / 2;
+			cam_offset.z *= eyesep / 2;
+		}
+		else if (mode == LEFT)
+		{
+			cam_offset.x *= -eyesep / 2;
+			cam_offset.y *= -eyesep / 2;
+			cam_offset.z *= -eyesep / 2;
+		}
 	}
 	glViewport(0, 0, (GLsizei) width, (GLsizei) height);
 	glMatrixMode(GL_PROJECTION);
@@ -493,7 +498,8 @@ static void render_setview(int mode)
 		, cam_fvec.x, cam_fvec.y, cam_fvec.z
 		, cam_uvec.x, cam_uvec.y, cam_uvec.z
 	);
-	vec_add(&cam_pos, &cam_pos, &cam_offset);
+	if (stereo)
+		vec_add(&cam_pos, &cam_pos, &cam_offset);
 	gluLookAt(
 		 cam_pos.x, cam_pos.y, -cam_pos.z
 		,cam_fvec.x+cam_pos.x, cam_fvec.y+cam_pos.y, -cam_fvec.z-cam_pos.z

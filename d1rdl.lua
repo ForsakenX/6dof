@@ -19,18 +19,14 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local verts = {}
+local faces = {}
+
 -- Convert an 8-bit integer (0 <= n <= 255) to a list of bits
 local function bits(n)
 	b = {}
-	for i = 7, 0, -1 do
-		local e = 2^i
-		-- Avoid rounding errors if any
-		if n/e >= 0.999 then
-			table.insert(b, 1, true)
-			n = n - e
-		else
-			table.insert(b, 1, false)
-		end
+	for i = 1, 8 do
+		table.insert(b, test(n, i))
 	end
 	return b
 end
@@ -41,8 +37,16 @@ local function normal(v1,v2,v3)
 	return n
 end
 
-local verts = {}
-local faces = {}
+local function face(v)
+	return {
+		{ index = v[1], texcoords = {0,0}, material = nil };
+		{ index = v[2], texcoords = {0,1}, material = nil };
+		{ index = v[3], texcoords = {1,0}, material = nil };
+		{ index = v[4], texcoords = {1,1}, material = nil };
+		normal = normal(verts[v[1]], verts[v[2]], verts[v[3]]);
+		texture = nil;
+	}
+end
 
 local f = binfile(io.open(config.lvlfile, 'rb'))
 local hdrID, ver, offset = f:binread('iii????????')
@@ -101,22 +105,22 @@ for i = 1, ncubes do
 	DEBUG(6, ('Cube vertex indices: %d, %d, %d, %d, %d, %d, %d, %d'):format(vLFT, vLFB, vRFB, vRFT, vLBT, vLBB, vRBB, vRBT))
 	if not sidemask[3] then
 		-- Left and right are swapped it seems... oh well.
-		table.insert(faces, {vLBT+1, vLFT+1, vLFB+1, vLBB+1})
+		table.insert(faces, face({vLBT+1, vLFT+1, vLFB+1, vLBB+1}))
 	end
 	if not sidemask[2] then
-		table.insert(faces, {vLBT+1, vRBT+1, vRFT+1, vLFT+1})
+		table.insert(faces, face({vLBT+1, vRBT+1, vRFT+1, vLFT+1}))
 	end
 	if not sidemask[1] then
-		table.insert(faces, {vRFT+1, vRBT+1, vRBB+1, vRFB+1})
+		table.insert(faces, face({vRFT+1, vRBT+1, vRBB+1, vRFB+1}))
 	end
 	if not sidemask[4] then
-		table.insert(faces, {vRBB+1, vLBB+1, vLFB+1, vRFB+1})
+		table.insert(faces, face({vRBB+1, vLBB+1, vLFB+1, vRFB+1}))
 	end
 	if not sidemask[5] then
-		table.insert(faces, {vRBT+1, vLBT+1, vLBB+1, vRBB+1})
+		table.insert(faces, face({vRBT+1, vLBT+1, vLBB+1, vRBB+1}))
 	end
 	if not sidemask[6] then
-		table.insert(faces, {vLFT+1, vRFT+1, vRFB+1, vLFB+1})
+		table.insert(faces, face({vLFT+1, vRFT+1, vRFB+1, vLFB+1}))
 	end
 	if sidemask[7] then
 		-- Discard special data
@@ -155,13 +159,6 @@ for i = 1, ncubes do
 	end
 end
 f:close()
-
--- Add normals to faces
-for i = 1, #faces do
-	local face = faces[i]
-	DEBUG(6, ('Adding normal for face (%g, %g, %g, ...)'):format(face[1], face[2], face[3]))
-	table.insert(face, normal(verts[face[1]], verts[face[2]], verts[face[3]]))
-end
 
 DEBUG(4, ("%s: %d vertices, %d faces"):format(config.lvlfile, #verts, #faces))
 return { vertices = verts, faces = faces }

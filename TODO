@@ -1,9 +1,13 @@
-* Make all level files/loaders work
-
 * Documentation:
   - Prerequisites section
+  - General improvements
 
 * Better handling of endianness
 
 * Graphics:
   - Light sources and lighting
+
+* Input:
+  - Joystick hat support
+
+* Make all level files/loaders work
