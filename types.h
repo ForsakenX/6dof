@@ -57,4 +57,30 @@ typedef struct
 	scalar m[4][4];
 } mat44;
 
+/* Some macros that work with types. */
+
+/* 1 if the type of the given expression is integral, 0 otherwise. */
+#define isint(x) \
+	( \
+		   __builtin_types_compatible_p(typeof(x), char) \
+		|| __builtin_types_compatible_p(typeof(x), short) \
+		|| __builtin_types_compatible_p(typeof(x), int) \
+		|| __builtin_types_compatible_p(typeof(x), long) \
+		|| __builtin_types_compatible_p(typeof(x), long long) \
+		|| __builtin_types_compatible_p(typeof(x), unsigned char) \
+		|| __builtin_types_compatible_p(typeof(x), unsigned short) \
+		|| __builtin_types_compatible_p(typeof(x), unsigned int) \
+		|| __builtin_types_compatible_p(typeof(x), unsigned long) \
+		|| __builtin_types_compatible_p(typeof(x), unsigned long long) \
+	)
+
+/* 1 if the type of the given expression is a floating point type,
+ * 0 otherwise. */
+#define isfloat(x) \
+	( \
+		   __builtin_types_compatible_p(typeof(x), float) \
+		|| __builtin_types_compatible_p(typeof(x), double) \
+		|| __builtin_types_compatible_p(typeof(x), long double) \
+	)
+
 #endif /* TYPES_H */

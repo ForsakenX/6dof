@@ -33,5 +33,6 @@ turnaccel = 500
 turndrag = 30
 
 -- Temporary options for level/model to load and texture directory
+texdir = '/home/pim/src/forsaken/skeleton/Data/Textures'
 lvlfile = '/home/pim/src/forsaken/skeleton/Data/Levels/ship/SHIP.MXV'
-texdir = '/home/pim/src/forsaken/skeleton/Data/Levels/ship/textures'
+lvltexdir = '/home/pim/src/forsaken/skeleton/Data/Levels/ship/textures'

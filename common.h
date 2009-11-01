@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <byteswap.h>
 
 #include <math.h>
 
@@ -201,6 +202,7 @@
 	}
 
 #include "types.h"
+#include "endian.h"
 #include "global.h"
 #include "scalar.h"
 #include "vector.h"

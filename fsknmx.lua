@@ -29,30 +29,41 @@ local triangles = {}
 local vert_offset = 1
 
 -- Functions for finding forsaken texture files which tend to differ in case
+
 local function capitalize(str)
 	return str:sub(1, 1):upper() .. str:sub(2):lower()
 end
 
 local function tryname(name)
 	-- TODO: portable path separator?
-	local f = io.open(config.texdir .. '/' .. name, 'rb')
-	if f then f:close() end
-	return f ~= nil
+	local searchdirs = {
+		 config.lvltexdir
+		,config.texdir
+	}
+	for _, dir in ipairs(searchdirs) do
+		local f = io.open(dir .. '/' .. name, 'rb')
+		if f then
+			f:close()
+			return dir
+		end
+	end
+	return nil
 end
 
 local function findtex(name)
 	local f
 	local t = { name:lower(), name:upper(), capitalize(name) }
 	for _, fname in ipairs(t) do
-		ok = tryname(fname)
-		if ok then
+		local dir = tryname(fname)
+		if dir then
 			-- TODO: portable path separator?
-			return config.texdir .. '/' .. fname
+			return dir .. '/' .. fname
 		end
 	end
 	error("couldn't find texture " .. name)
 end
 
+-- Convert a 32-bit Forsaken color value to an (R,G,B,A) quadruple.
 local function rgba(n)
 	local b = bitand(n, 0xff) / 255
 	n = shr(n, 8)
