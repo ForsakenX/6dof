@@ -7,7 +7,7 @@ SCALAR_PRECISION=0
 
 CC=gcc
 
-FLAGS=-pipe
+FLAGS=-pipe -march=native
 CFLAGS=$(FLAGS)
 LDFLAGS=$(FLAGS)
 ifeq ($(DEBUG),1)
