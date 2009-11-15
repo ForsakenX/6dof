@@ -32,18 +32,13 @@ struct control
 	int fire2;
 };
 
-/* For on/off type inputs like keys and buttons. */
-#define BUTTON 1
-/* For bounded (absolute) single axis inputs such as a joystick axis. */
-#define AXIS 2
-/* For bounded double axis inputs such as a mouse pointer. */
-#define POINTER 3
-/* For wheel-like (unbounded single axis) inputs, yielding relative
- * values. */
-#define WHEEL 4
-/* For ball-like (unbounded double axis) inputs, yielding relative
- * values. */
-#define BALL 5
+/* Input event types with examples. */
+#define PULSE 1    /* No state (and no example - user-defined inputs maybe) */
+#define BUTTON 2   /* On/off (key, button) */
+#define AXIS 3     /* Bounded, absolute (joystick axis). */
+#define POINTER 4  /* 2 bounded axes, absolute (mouse pointer). */
+#define WHEEL 5    /* Unbounded, relative (mouse wheel). */
+#define BALL 6     /* 2 unbounded axes, relative (mouse). */
 
 #define NUM_INPUT_TYPES 5
 

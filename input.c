@@ -82,6 +82,10 @@ static void push_lua_event_data(lua_State *L, const struct input_event *event)
 	lua_setfield(L, -2, "id");
 	switch (event->type)
 	{
+		case PULSE:
+			lua_pushliteral(L, "pulse");
+			lua_setfield(L, -2, "type");
+			break;
 		case BUTTON:
 			lua_pushliteral(L, "button");
 			lua_setfield(L, -2, "type");
@@ -101,6 +105,20 @@ static void push_lua_event_data(lua_State *L, const struct input_event *event)
 			lua_setfield(L, -2, "x");
 			lua_pushnumber(L, event->y);
 			lua_setfield(L, -2, "y");
+			break;
+		case WHEEL:
+			lua_pushliteral(L, "wheel");
+			lua_setfield(L, -2, "type");
+			lua_pushnumber(L, event->value);
+			lua_setfield(L, -2, "delta");
+			break;
+		case BALL:
+			lua_pushliteral(L, "ball");
+			lua_setfield(L, -2, "type");
+			lua_pushnumber(L, event->x);
+			lua_setfield(L, -2, "dx");
+			lua_pushnumber(L, event->y);
+			lua_setfield(L, -2, "dy");
 			break;
 		default:
 			/* Trouble. The event shouldn't have made it this far. */
