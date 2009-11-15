@@ -276,8 +276,11 @@ static const struct fixed_input
 	,{ BUTTON, SDLK_LAST+13, "mouse1" }
 	,{ BUTTON, SDLK_LAST+14, "mouse2" }
 	,{ BUTTON, SDLK_LAST+15, "mouse3" }
-	,{ BUTTON, SDLK_LAST+16, "mousewheelup" }
-	,{ BUTTON, SDLK_LAST+17, "mousewheeldown" }
+	,{ WHEEL, SDLK_LAST+16, "mousewheel" }
+	/* -- Alternatively... (needs changes in code too)
+	,{ PULSE, SDLK_LAST+16, "mousewheelup" }
+	,{ PULSE, SDLK_LAST+17, "mousewheeldown" }
+	*/
 	,{ BUTTON, SDLK_LAST+18, "mouse4" }
 	,{ BUTTON, SDLK_LAST+19, "mouse5" }
 
@@ -565,6 +568,26 @@ static int get_event(struct input_event *event, int wait)
 			}
 			break;
 		case SDL_MOUSEBUTTONDOWN:
+#if SDL_VERSION_ATLEAST(1, 2, 5)
+			/* Handle mouse wheel events specially. */
+			if (sdl_ev.button.button == SDL_BUTTON_WHEELUP)
+			{
+				event->type = WHEEL;
+				event->id = SDLK_LAST+16;
+				event->value = -1;
+				DEBUG(6, "Mouse wheel (up) event, id == %d\n", event->id);
+				break;
+			}
+			else if (sdl_ev.button.button == SDL_BUTTON_WHEELDOWN)
+			{
+				event->type = WHEEL;
+				event->id = SDLK_LAST+16;
+				event->value = 1;
+				DEBUG(6, "Mouse wheel (down) event, id == %d\n", event->id);
+				break;
+			}
+			/* If neither, pass it through to the code below. */
+#endif
 		case SDL_MOUSEBUTTONUP:
 			event->type = BUTTON;
 			switch (sdl_ev.button.button)
@@ -573,8 +596,10 @@ static int get_event(struct input_event *event, int wait)
 				case SDL_BUTTON_MIDDLE: event->id = SDLK_LAST+14; break;
 				case SDL_BUTTON_RIGHT: event->id = SDLK_LAST+15; break;
 #if SDL_VERSION_ATLEAST(1, 2, 5)
-				case SDL_BUTTON_WHEELUP: event->id = SDLK_LAST+16; break;
-				case SDL_BUTTON_WHEELDOWN: event->id = SDLK_LAST+17; break;
+				case SDL_BUTTON_WHEELUP:
+				case SDL_BUTTON_WHEELDOWN:
+					/* Ignore mouse wheel "release" events. */
+					return 1;
 #endif
 #if SDL_VERSION_ATLEAST(1, 2, 13)
 				case SDL_BUTTON_X1: event->id = SDLK_LAST+18; break;

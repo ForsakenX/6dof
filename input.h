@@ -33,12 +33,12 @@ struct control
 };
 
 /* Input event types with examples. */
-#define PULSE 1    /* No state (and no example - user-defined inputs maybe) */
+#define PULSE 1    /* No state (possible alternative for mouse wheel) */
 #define BUTTON 2   /* On/off (key, button) */
 #define AXIS 3     /* Bounded, absolute (joystick axis). */
 #define POINTER 4  /* 2 bounded axes, absolute (mouse pointer). */
 #define WHEEL 5    /* Unbounded, relative (mouse wheel). */
-#define BALL 6     /* 2 unbounded axes, relative (mouse). */
+#define BALL 6     /* 2 unbounded axes, relative (mouse for turning). */
 
 #define NUM_INPUT_TYPES 5
 
