@@ -28,19 +28,6 @@ find many things that will interest you unless you are a programmer
 who wants to learn how it is organized, and perhaps help out. This
 ``README`` file should help you get started.
 
-Design goals
-------------
-* Simplicity: it should be easy to understand how a component can be
-  used and how it actually is used, and to get a decent overview of
-  the whole.
-
-* Flexibility: it should be straightforward to add new components
-  or replace existing ones, such as level readers/generators or
-  audio/graphics modules.
-
-The idea is to do the minimum amount of design needed for the project
-to have both of these properties in a Reasonable(tm) degree.
-
 Overview
 ========
 The game consists of a core written in C that is augmented by a Lua_
