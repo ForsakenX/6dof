@@ -93,7 +93,7 @@ luafuncs: luafuncs.so
 luafuncs.so: lua_funcs.c
 	$(CC) -shared -fPIC -pipe -O2 $(ADD_FLAGS) -DSTANDALONE -s -o luafuncs.so lua_funcs.c -llua
 
-README.html: README
-	rst2html.py -s -v -g -d README > README.html
+doc:
+	$(MAKE) -C doc
 
-.PHONY: luafuncs clean
+.PHONY: all all-no-pch clean doc luafuncs
