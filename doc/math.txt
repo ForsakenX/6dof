@@ -1,0 +1,32 @@
+===================================
+ 6dof math functions documentation
+===================================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Math
+====
+Some basic functions have been provided to work with vectors, which
+are used to denote 3D coordinates, and quaternions to denote 3D object
+orientations. Matrix functions may also be added at some point.
+
+All of these functions use the ``scalar`` type for floating-point
+numbers. The precision of this type can be set at compile-time and
+defaults to the C ``float`` data type.
+
+C math functions that write their result to a specified memory address
+first compute their result locally. This is a little less efficient in
+most cases, but it has the benefit of allowing their destination
+parameter to equal one or both of their source parameters::
+
+    vector v1 = {1.0f, 2.0f, 3.0f};
+    vector v2 = {3.0f, 2.0f, 1.0f};
+    vec_crossprod(&v1, &v1, &v2);
+    /* v1 now contains {-4.0f, 8.0f, -4.0f}. */
+
+`The Lua environment`_ is also enhanced with some vector functions.
+See below for some examples. Quaternion and matrix functionality may
+follow later on.

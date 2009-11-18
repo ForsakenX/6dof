@@ -1,0 +1,196 @@
+====================================
+ 6dof Lua environment documentation
+====================================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+The Lua environment
+===================
+The game uses Lua_ to provide a flexible scripting environment. It
+will be used for most high-level stuff and to control what the game
+does, such as displaying menus, starting levels, setting options, and
+manipulating the game world.
+
+Currently, the Lua environment is just used for configuration, input
+binding, and generating level geometry data.
+
+Configuration
+-------------
+The ``config`` table stores the configuration values. See the `Global
+configuration system`_ section above for a more detailed description
+of the configuration system.
+
+Controls
+--------
+Input binding is done exclusively via the Lua environment. The
+``input`` table holds all input-related tables and functions.
+``input.id`` is a table that maps input names to input IDs.
+``input.bindings`` holds the actual bindings - what inputs are mapped
+to which functions. Neither of these two tables is meant to be
+accessed directly; two functions ``input.bind`` and ``input.unbind``
+are provided to add and remove bindings. An example of how to use
+``input.bind`` has already been given in the Input_ section above.
+Additional examples can be found in the ``bindings.lua`` file, which
+is read and executed at the end of the initialization process.
+
+Levels
+------
+Levels are loaded by executing a Lua script that will return the
+vertex/face data to be put in the corresponding low-level structures
+for processing by the game components that use it, notably graphics
+and physics.
+
+This provides some interesting opportunities for level designers,
+since such scripts can produce this data in various ways. Anything
+from providing static geometry data, to reading such data from various
+file types, or even automatically generating it, or any combination of
+these, is possible. Examples of the first two are already included.
+
+A similar means of providing sound and texture data may be added later
+on.
+
+Models
+------
+Level / polymodel data table passed from Lua to C::
+
+    {
+        ['vertices'] = vertices;
+        ['faces'] = faces;
+    }
+
+where
+
+::
+
+    vertices = { {x1,y1,z1}, {x2,y2,z2}, ... }
+    faces = { v1, v2, ..., key = value, ... }
+
+``key`` and ``value`` can be:
+
+* ``['normal'] = {x,y,z}``: face normal.
+* ``['texture'] = handle``: texture handle as provided by the graphics
+  subsystem.
+
+``v1``, ``v2``, ... are tables containing per-vertex data:
+
+* ``['index'] = i``: vertex index.
+* ``['normal'] = {x,y,z}``: per-vertex face normal.
+* ``['texcoords'] = {s, t}``: texture coordinates.
+* ``['material'] = handle``: material handle as provided by the
+  graphics subsystem.
+
+Lua functions to load levels and models will be provided later
+(or sooner), in a way similar to the texture functions (see below).
+
+Vectors
+-------
+Vectors can be created and used like this::
+
+    v = vec(1,2,3)
+    w = vec({3,2,1})
+    print(('%d,%d,%d'):format(v.x, v.y, v.z)) -- '1,2,3' (coordinates)
+    print(v+w) -- '(4, 4, 4)'
+    print(v-w) -- '(-2, 0, 2)'
+    print(v*2) -- '(2, 4, 6)'
+    print(v*w) -- '10' (dot product)
+    print(-v) -- '(-1, -2, -3)' (reverse)
+    print(v:len()) -- '3.7416573867739' (magnitude)
+    print(v:norm()) -- '(0.267261, 0.534522, 0.801784)' (normalized)
+    print(v:cross(w)) -- '(-4, 8, -4)' (cross product)
+
+Sounds
+------
+::
+
+    -- load a sound sample
+    audio.load('mysoundhandlename', 'filename.wav')
+    -- play it
+    handle = audio.play('mysoundhandlename', 65535, 0, 0)
+    -- or positional --
+    handle = audio.play3d('mysoundhandlename', vec(1, 2, 3), 65535, 0)
+    -- stop the sound
+    audio.stop(handle)
+    -- unload it
+    audio.free('mysoundhandlename')
+
+Textures
+--------
+To load a texture into the graphics module and prepare it for
+rendering::
+
+    handle = gfx.texture({
+        width = w;
+        height = h;
+        flags = 0; -- to be defined
+        data = d;
+    })
+
+where ``w`` and ``h`` are integers and ``d`` is a Lua string
+containing the pixel data in RGB format, one byte per color component.
+
+The handle should be kept in the Lua environment somewhere until it's
+no longer needed - when the handle gets garbage-collected, the
+corresponding texture goes with it. The game keeps the level data
+structure (which contains references to these handles) around and so
+this need not be done explicitly.
+
+Lua texture loaders can already be created and used this way; for
+example::
+
+    handle = gfx.texture(loadfile('mytexloader.lua')(args))
+
+Materials
+---------
+Materials can be created and used in a way similar to textures::
+
+    handle = gfx.material({
+        flags = 0;
+        color = {r,g,b};
+        specular = {sr,sg,sb};
+        alpha = 1;
+    })
+    handle2 = gfx.material({
+        flags = gfx.MATERIAL_FULL;
+        ambient = {ar,ag,ab};
+        diffuse = {dr,dg,db};
+        specular = {sr,sg,sb};
+        emission = {er,eg,eb};
+        shininess = 1;
+        alpha = 1;
+    })
+
+**NOTE**: The material system is likely to change later, more so than
+the rest of the graphics subsystem.
+
+Miscellaneous Lua functions
+---------------------------
+These are some additional functions that don't fall into any other
+category:
+
+* a ``DEBUG`` function that acts similar to the C macro defined in
+  ``common.h``. See the `Debug information`_ section for some
+  examples;
+* a ``warn`` function to issue warnings; currently equivalent to
+  Lua's ``print`` function;
+* ``unpack`` is similar to Perl's ``unpack`` and Python's
+  ``struct.unpack``; it extracts binary data from a string::
+
+    -- Reads a 32-bit signed integer and a float from str
+    local i, f = unpack('if', str)
+
+* ``binread`` works like ``unpack`` but reads its data from a file
+  handle, automatically reading the correct amount of bytes from the
+  stream::
+
+    -- Reads a 16-bit signed integer followed by a vector (3 floats)
+    -- (14 bytes total) from the filehandle f, storing the integer in
+    -- n and the vector in v.
+    local n, v = f:binread('hv')
+
+* a ``binfile`` function to add the ``binread`` method to Lua file
+  handles, for example::
+
+    local f = binfile(io.open(config.lvlfile, 'rb'))

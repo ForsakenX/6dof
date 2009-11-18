@@ -1,0 +1,26 @@
+=============================
+ 6dof graphics documentation
+=============================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Graphics
+========
+The graphics module is currently written using the SDL_, OpenGL_, and
+GLU_ interfaces. The interface (``gfx.h``) is currently simple, but
+will have to be extended as features are added. In particular,
+lighting has yet to be implemented (other than the single light
+source originating from the camera - a temporary "solution").
+
+Some implementation-independent graphics functions are also provided.
+Currently these are just functions for loading geometry and texture
+data into the graphics module in preparation for rendering, but more
+functions will be added later for other things such as displaying
+graphical effects and user interface components.
+
+.. _SDL: http://www.libsdl.org/
+.. _OpenGL: http://www.opengl.org/
+.. _GLU: http://www.opengl.org/resources/libraries/glx/

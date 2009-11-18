@@ -1,0 +1,25 @@
+=================================
+ 6dof audio module documentation
+=================================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Audio
+=====
+A basic interface for audio modules has been designed and can be found
+in the ``audio.h`` file. There is a "null" audio implementation that
+provides the functions expected and used by the game's core, but does
+not actually produce any sound.  It is the default audio module for
+now, until the project has some sounds to use and an implementation
+that produces sound, and may still remain useful in the future, e.g.
+for dedicated servers.
+
+A partial audio implementation based on SDL_mixer_ is also included,
+but it may be a better idea to use OpenAL_ instead, since it provides a
+3D sound interface.
+
+.. _SDL_mixer: http://www.libsdl.org/projects/SDL_mixer/
+.. _OpenAL: http://connect.creativelabs.com/openal/
