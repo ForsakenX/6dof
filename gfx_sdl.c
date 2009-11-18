@@ -40,7 +40,7 @@ static void init_materials(void)
 			.simple = {
 				 .color = { 0.5f, 0.5f, 0.5f }
 				,.alpha = 1.0f
-				,.specular = 1.0f
+				,.specular = { 1.0f, 1.0f, 1.0f }
 			}
 		}
 	};
@@ -258,10 +258,7 @@ static int init(void)
 		flags |= FULLSCREEN;
 	set_screen(0, 0, 0, flags);
 	if (!screen)
-	{
-		ERROR("SDL_SetVideoMode(): %s", SDL_GetError());
 		return 1;
-	}
 	DEBUG(2, "gfx_sdl: using video driver \"%s\"\n",
 		SDL_VideoDriverName(drv_name, 64));
 	memset(&scene, 0, sizeof(struct gfx_scene));
@@ -287,7 +284,6 @@ static int set_screen(int width, int height, int bpp, int flags)
 		width = config_get_int("width");
 		height = config_get_int("height");
 		bpp = config_get_int("bpp");
-		DEBUG(3, "gfx_sdl: setting screen mode to %dx%dx%d\n", width, height, bpp);
 	}
 	if (bpp == 16)
 	{
@@ -315,8 +311,9 @@ static int set_screen(int width, int height, int bpp, int flags)
 		ERROR("invalid bpp value %d (must be 16, 24, or 32)", bpp);
 		return 1;
 	}
+	DEBUG(3, "gfx_sdl: trying %dx%dx%d\n", width, height, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	sdlflags = SDL_HWSURFACE | SDL_ANYFORMAT | SDL_DOUBLEBUF | SDL_OPENGL;
+	sdlflags = SDL_ANYFORMAT | SDL_OPENGL;
 	if (flags & FULLSCREEN)
 		sdlflags |= SDL_FULLSCREEN;
 	new_screen = SDL_SetVideoMode(width, height, bpp, sdlflags);
@@ -325,6 +322,8 @@ static int set_screen(int width, int height, int bpp, int flags)
 		ERROR("SDL_SetVideoMode(): %s", SDL_GetError());
 		return 1;
 	}
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
+	DEBUG(3, "gfx_sdl: screen was set to %dx%dx%d\n", width, height, bpp);
 	SDL_WM_SetCaption("6dof", "6dof");
 	screen = new_screen;
 	/*
@@ -434,7 +433,6 @@ static void render_setview(int mode)
 	int width, height;
 	float aspect;
 	float halfwidth;
-	float shift;
 	float top, bottom, left, right;
 	float eyesep;
 	float offset;
