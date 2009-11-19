@@ -277,6 +277,7 @@ static int set_screen(int width, int height, int bpp, int flags)
 {
 	SDL_Surface *new_screen;
 	int sdlflags;
+	float gamma;
 
 	DEBUG(3, "gfx_sdl: set_screen(%d, %d, %d)\n", width, height, bpp);
 	if (width <= 0 || height <= 0 || bpp <= 0)
@@ -313,6 +314,7 @@ static int set_screen(int width, int height, int bpp, int flags)
 	}
 	DEBUG(3, "gfx_sdl: trying %dx%dx%d\n", width, height, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, config_get_int("vsync") != 0);
 	sdlflags = SDL_ANYFORMAT | SDL_OPENGL;
 	if (flags & FULLSCREEN)
 		sdlflags |= SDL_FULLSCREEN;
@@ -324,6 +326,12 @@ static int set_screen(int width, int height, int bpp, int flags)
 	}
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
 	DEBUG(3, "gfx_sdl: screen was set to %dx%dx%d\n", width, height, bpp);
+	gamma = config_get_float("gamma");
+	if (gamma >= 0.001f)
+	{
+		DEBUG(3, "gfx_sdl: setting screen gamma value to %g\n", gamma);
+		SDL_SetGamma(gamma, gamma, gamma);
+	}
 	SDL_WM_SetCaption("6dof", "6dof");
 	screen = new_screen;
 	/*
