@@ -18,7 +18,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#include "common.h"
+#include "../include/common.h"
 
 struct gfx_driver *gfx;
 

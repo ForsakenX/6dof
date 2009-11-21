@@ -18,7 +18,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#include "common.h"
+#include "../include/common.h"
 
 scalar quat_len2(const quat *q)
 {

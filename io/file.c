@@ -18,7 +18,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#include "common.h"
+#include "../include/common.h"
 
 #define VALID    0x01010101
 #define READABLE 0x02020202

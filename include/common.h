@@ -208,7 +208,7 @@
 #include "vector.h"
 #include "quaternion.h"
 #include "config.h"
-#include "lua_funcs.h"
+#include "lua_binread.h"
 #include "file.h"
 #include "time.h"
 #include "model.h"

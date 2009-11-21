@@ -30,7 +30,7 @@
 
 #else /* !STANDALONE */
 
-#include "common.h"
+#include "../include/common.h"
 
 #endif /* !STANDALONE */
 

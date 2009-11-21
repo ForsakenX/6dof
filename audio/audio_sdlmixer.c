@@ -20,7 +20,7 @@
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
-#include "common.h"
+#include "../include/common.h"
 
 #define MAX_SOUNDS 32
 

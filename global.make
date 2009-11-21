@@ -63,6 +63,12 @@ else ifeq ($(SCALAR_PRECISION),2)
 	CFLAGS+= -DSCALAR_LONG_DOUBLE
 endif
 
+ifeq ($(MAKELEVEL),0)
+	INCLDIR=include
+else
+	INCLDIR=../include
+endif
+
 ADD_FLAGS=
 ADD_CFLAGS=
 ADD_LDFLAGS=
@@ -70,10 +76,15 @@ FLAGS+=$(ADD_FLAGS)
 CFLAGS+=$(ADD_CFLAGS)
 LDFLAGS+=$(ADD_LDFLAGS)
 
-INCLUDE=$(patsubst %,../include/%,audio.h common.h config.h endian.h game.h gfx.h global.h input.h lua_binread.h model.h quaternion.h scalar.h time.h types.h vector.h)
+INCLUDE:=audio.h common.h config.h endian.h game.h gfx.h global.h input.h lua_binread.h model.h quaternion.h scalar.h time.h types.h vector.h
 
-$(OBJS): $(INCLUDE) | common.h.gch
+PCH=$(INCLDIR)/common.h.gch
 
-# FIXME: .........
-common.h.gch: $(INCLUDE)
-	$(CC) $(CFLAGS) -o common.h.gch common.h
+INCLUDE:=$(patsubst %,$(INCLDIR)/%,$(INCLUDE))
+
+$(OBJS): $(INCLUDE) | $(PCH)
+
+$(PCH): $(INCLUDE)
+	$(CC) $(CFLAGS) -o $(PCH) $(INCLDIR)/common.h
+
+.DEFAULT_GOAL := all

@@ -21,7 +21,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include "common.h"
+#include "../include/common.h"
 
 int vec_isnull(const vector *v)
 {

@@ -10,18 +10,26 @@ PARTS=audio.a gfx.a input.a io.a main.a math.a
 
 BIN=6dof
 
-all: common.h.gch all-no-pch
+all: $(PCH) all-no-pch
 
 all-no-pch: $(BIN)
 
 $(BIN): $(PARTS)
-	$(CC) $(LDFLAGS) $(PARTS) -o $(BIN) $(LIBS)
+	$(CC) $(LDFLAGS) '-Wl,-(' $(PARTS) '-Wl,-)' -o $(BIN) $(LIBS)
 
-$(PARTS): | common.h.gch
+$(PARTS): | $(PCH)
 	$(MAKE) -C $(@:.a=)
 
+# Is there a better way to do this?
 clean:
-	$(RM) $(PARTS) $(BIN) common.h.gch
+	$(RM) $(BIN) $(PCH)
+	$(MAKE) -C audio clean
+	$(MAKE) -C doc clean
+	$(MAKE) -C gfx clean
+	$(MAKE) -C input clean
+	$(MAKE) -C io clean
+	$(MAKE) -C main clean
+	$(MAKE) -C math clean
 
 doc:
 	$(MAKE) -C doc
