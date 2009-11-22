@@ -1,0 +1,194 @@
+=========================
+ 6dof core documentation
+=========================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Core
+====
+This section describes the "glue" that ties the various components
+together. `The Lua environment`_ has its own section further below.
+
+Core project files
+------------------
+* ``common.h`` includes all header files used and defines a couple of
+  macros used throughout the project, notably DEBUG and ERROR.
+
+* ``config.c`` and ``config.h`` define the functions for retrieving
+  configuration values in C code.
+
+* ``config.lua`` sets up the configuration table and loads it with
+  values from ``defaults.lua``.
+
+* ``defaults.lua`` defines options and their initial default values.
+
+* ``game.c`` and ``game.h`` define the core of the game world model
+  and contain the main loop. (Currently the "model" is just the level
+  with a camera flying through it - basic physics for the camera are
+  also implemented here for now).
+
+* ``global.c`` and ``global.h`` define global variables and
+  miscellaneous functions that are used throughout the code.
+
+* ``init.lua`` sets up the Lua environment and processes the
+  commandline.
+
+* ``lua_funcs.c`` and ``lua_funcs.h`` define miscellaneous Lua
+  functions written in C. Currently these are just the ``unpack``
+  function which acts in a way similar to Perl's function of the same
+  name, and the ``binread`` function which combines this functionality
+  with reading from a file handle. The latter is used extensively by
+  the Descent and Forsaken level/model reader scripts.
+
+* ``main.c`` contains the game's entry point. See below.
+
+* ``scalar.h`` contains some macros for working with the ``scalar``
+  type. It provides ``scalar`` equivalents for math library functions
+  such as ``sin``, ``cos``, and ``sqrt``. These ``scalar`` versions
+  use the ``s`` suffix, yielding function names like ``sins``,
+  ``coss``, and ``sqrts``.
+
+* ``types.h``: declares commonly used types. These include the
+  ``vector`` and ``quat`` (quaternion) types. They are defined here
+  instead of in ``vector.h`` and ``quaternion.h`` since some
+  operations may involve both of these types, so they have to be
+  declared before any functions that involve both types.
+
+* ``util.lua`` contains miscellaneous functions written in Lua.
+
+``main`` and the initialization process
+---------------------------------------
+When ``main()`` is called, the first thing the game does is create the
+Lua environment and initialize it, then execute the ``init.lua``
+script, which in turn runs ``config.lua`` to set up the configuration
+table, then loads the Lua utility functions in ``util.lua`` and
+``vector.lua``, and finally processes the commandline.
+
+Controls goes back to C at which point the ``lua_funcs`` will be
+registered (this step *may* later be performed before running
+``init.lua``). The game then proceeds by initializing each subsystem
+(audio_, graphics_, input_) and the game world code, and finally
+running ``bindings.lua`` to load the user's input configuration.
+
+What happens at this point is subject to some major change as the game
+develops. Currently, a level is loaded as indicated by some
+configuration values and the main game loop is entered immediately.
+
+Debug information
+-----------------
+The game has a simple numbered debug level system. Debug information
+is produced throughout the game's code by calling the DEBUG() macro,
+which can be used like the ``printf`` function but preceded with a
+debug level. There are 11 debug levels, ranging from 0 to 10. 0 means
+no debug information, printing only warnings and errors. There are no
+strict rules dictating what debug information should have which level,
+but here are some guidelines with examples:
+
+* 1 - global initialization steps::
+
+    DEBUG(1, "Initializing graphics subsystem\n");
+
+* 2 - modules initialized and configuration-dependent initialization
+  steps::
+
+    DEBUG(2, "Using SDL for graphics\n");
+    DEBUG(2, "gfx_sdl: using video driver \"%s\"\n",
+      SDL_VideoDriverName(drv_name, 64));
+    DEBUG(2, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
+
+* 3 - initialization/shutdown-related subsystem functions called::
+
+    DEBUG(3, "audio_null: init()\n");
+    DEBUG(3, "gfx_sdl: setting screen mode to %dx%dx%d\n", width, height, bpp);
+    (in Lua)  DEBUG(3, "Loading configuration from "..name)
+
+* 4 - data file loading and incidentally used or mid-level
+  subsystem functions::
+
+    DEBUG(4, "audio_null: load_sound(%s)\n", filename);
+    (in Lua)  DEBUG(4, ('Header says %d verts, %d cubes'):
+                format(nverts, ncubes))
+
+* 5 - commonly used (but not necessarily every frame) or low-level
+  subsystem functions::
+
+    DEBUG(5, "audio_null: play_sound(%d, %d, %.3f, %#x)\n",
+      soundno, volume, panning, flags);
+    DEBUG(5, "Calling C function for input event %d\n", event.id);
+
+* 6-10 - details::
+
+    DEBUG(6, "Key press event, id == %d\n", event->id);
+    DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n",
+      num_inputs);
+    (in Lua)  DEBUG(6, 'Reading subobject '..sobj_num)
+    DEBUG(7, "%s:%d: reading %d bytes\n", __FILE__, __LINE__, n);
+    DEBUG(9, "binread(\"%s\", ...)\n", fmt);
+
+* 8-10 - functions invoked at least once every frame::
+
+    DEBUG(8, "Processing input events\n");
+    DEBUG(8, "gfx_sdl: render()\n");
+
+* 10 - trivial functions::
+
+    DEBUG(10, "gfx_sdl: get_scene() = %#010tx\n", &scene);
+
+Global configuration system
+---------------------------
+The game has a global table to store configuration values. Its purpose
+is to make certain parameters easily adjustable by the user, and
+easily accessible by the game's code (even its C code). Here's how it
+works and how to use it:
+
+* In the early stage of game initialization, a special Lua table
+  called ``config`` is created and loaded with values from
+  ``defaults.lua``. This file contains initial (default) values for
+  the options. At the same time, it determines what options exist; it
+  is not possible to add new options after initialization.
+
+* Immediately after this, the game parses the commandline used to run
+  it. Commandline options can be used to override the default values
+  specified in ``defaults.lua``. The game looks for arguments of the
+  form ``--option=value``, ``--no-option``, and ``--option``. The
+  first form assigns a string or number value to an option. The second
+  and third forms disable and enable a boolean (on/off) option,
+  respectively.
+
+* From within the Lua environment, options can be accessed as
+  ``config.optionname``. For example::
+
+    print(('The current screen mode is %dx%dx%d'):format(
+      config.width, config.height, config.bpp
+    ))
+
+* In C code, use the ``config_get_int``, ``config_get_float``, and ``config_get_str`` functions. ``config_get_int`` is also used for booleans. Example::
+
+    printf("Current mouse sensitivity: x=%f, y=%f\n",
+      config_get_float("mousesensx"), config_get_float("mousesensy")
+    );
+    printf("Joystick is %s\n",
+      config_get_int("joystick") ? "enabled" : "disabled"
+    );
+
+* Options can be changed from within the Lua environment, but there
+  are no equivalent ``config_set_*`` functions in C. Currently, most
+  (if not all) options are used only during initialization, so
+  changing them afterwards has no effect. This *may* change if/when
+  configuration events are introduced (see below).
+
+That's pretty much all there is to it. To introduce a new option all
+you have to do is add it to ``defaults.lua``, and you can start using
+it.
+
+Later on, an event system may be introduced that can notify modules of
+changes in the configuration, so they can use local variables to hold
+parameters and don't have to repeatedly poll the config table.
+
+.. _The Lua environment: lua.txt
+.. _Audio: audio.txt
+.. _Graphics: gfx.txt
+.. _Input: input.txt

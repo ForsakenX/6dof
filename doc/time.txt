@@ -1,0 +1,16 @@
+==================================
+ 6dof time function documentation
+==================================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Time
+====
+Provides game time and FPS (frames per second) information. The time
+module is currently trivial, with just a few globally accessible
+variables and a function to update them. This is enough for now. Later
+on, functions may be added to speed up, slow down, and pause/resume
+the game time, and provide functions to fire off time-based events.

@@ -1,0 +1,99 @@
+==========================
+ A free 6DoF game project
+==========================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Introduction
+============
+This project aims to produce a free (as in freedom) 6DoF first person
+shooter game. 6DoF stands for "six degrees of freedom", meaning
+players can move in any direction and rotate along any axis, without
+being affected by gravity. Only a few games of this type have ever
+been created, namely the Descent series and Forsaken. The newest one,
+Descent 3, was released in 1999, making it over 9 years old as of this
+writing.
+
+This ``README`` file contains some project documentation describing
+the various components and how they interact with each other. As the
+project grows bigger and the amount of documentation increases, it
+will eventually be split up into a set of multiple files describing
+each component separately.
+
+Since this project is still in its early development stages, you won't
+find many things that will interest you unless you are a programmer
+who wants to learn how it is organized, and perhaps help out. This
+``README`` file should help you get started.
+
+Overview
+========
+The game consists of a core written in C that is augmented by a Lua_
+environment and controlled by Lua scripts. At its base lies a global
+configuration system and a set of components that provide low-level
+functionality used throughout the game (such as math functions), take
+care of user interaction (audio, video, input), and perform
+computations that take too much time to be done in Lua (like physics
+and low-level artificial intelligence functions).
+
+.. _Lua: http://www.lua.org/
+
+Layout
+======
+The core_ of the project consists of a set of macros and types, and
+a `Lua environment`_ used to complement the C core.
+
+.. _Core: core.txt
+.. _Lua environment: lua.txt
+
+Modules and components
+======================
+These modules implement specific functions and are mostly independent
+from each other.
+
+(One unfortunate exception to this is currently the input subsystem,
+which uses SDL_ to access the various input devices. This requires
+that SDL also be used for the graphics component. If a new graphics
+subsystem is written that doesn't use SDL, a new input module will
+need to be written as well.)
+
+The interface (``*.h``) files contain specifications and descriptions
+for the functions they define; they will not be repeated here.
+
+Each of the modules are documented separately:
+
+  * Audio_
+  * `Controls and input devices`_
+  * `Data I/O`_
+  * Graphics_
+  * Time_
+
+.. _Audio: audio.txt
+.. _Controls and input devices: input.txt
+.. _Data I/O: io.txt
+.. _Graphics: gfx.txt
+.. _Time: time.txt
+
+Copyright
+=========
+
+* Copyright (C) 2009  Pim Goossens
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the `GNU General Public License`_ as published
+by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>,
+or write to the Free Software Foundation, Inc., 51 Franklin Street,
+Fifth Floor, Boston, MA 02110-1301 USA.
+
+.. _GNU General Public License: COPYING

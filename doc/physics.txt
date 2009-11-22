@@ -1,0 +1,19 @@
+===================================
+ 6dof physics module documentation
+===================================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+Physics
+=======
+This component has yet to be written. It will likely use ODE_. Some
+temporary "physics" code is in place to provide 6DoF-style camera
+movement and rotation. This code is currently in ``game.c`` (which
+implements the main game loop), and will be taken out (or at least
+moved elsewhere) later on when a game world and object model have been
+added.
+
+.. _ODE: http://www.ode.org/

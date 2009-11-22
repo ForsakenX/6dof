@@ -1,0 +1,22 @@
+========================
+ 6dof I/O documentation
+========================
+
+:Author: Pim Goossens
+:Contact: irc://irc.freenode.net/6dof
+
+.. contents::
+
+File system
+===========
+This module will take care of accessing game files and scripts.
+Basically it is an abstraction layer that takes care of finding files
+in their appropriate places and/or in archives as well as providing
+I/O functions.
+
+Currently, only a preliminary file interface and module have been
+written and they aren't actually used yet. This should change soon...
+
+PhysFS_ may be a useful library to use for this component.
+
+.. _PhysFS: http://icculus.org/physfs/
