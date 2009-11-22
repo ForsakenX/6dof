@@ -24,7 +24,7 @@ mousesensy = 0.5
 joystick = true
 
 -- Level to load
-level = 'fsknmx.lua'
+level = 'level/fsknmx.lua'
 
 -- Camera physics (temporary)
 accel = 3000

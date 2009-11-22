@@ -137,7 +137,7 @@ end
 for i = 1, f:binread('h') do
 	local texname = f:binread('z')
 	table.insert(textures,
-		gfx.texture(loadfile('bmp.lua')(findtex(texname)))
+		gfx.texture(loadfile('level/bmp.lua')(findtex(texname)))
 	)
 end
 -- For each group...

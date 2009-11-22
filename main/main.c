@@ -72,7 +72,7 @@ static int lua_init(int argc, char *argv[])
 	lua_pushcfunction(L1, lua_debug_level);
 	lua_setglobal(L1, "debuglevel");
 
-	LUA_RUN("init.lua");
+	LUA_RUN("main/init.lua");
 	lua_settop(L1, 0);
 	lua_getglobal(L1, "init");    /* [bottom] init [top] */
 	lua_createtable(L1, argc, 0); /* init, args */
@@ -102,7 +102,7 @@ static int init(int argc, char *argv[])
 	CHECK(input_init());
 	CHECK(game_init());
 	/* TODO: move elsewhere... */
-	LUA_RUN("bindings.lua");
+	LUA_RUN("main/bindings.lua");
 	return 0;
 }
 

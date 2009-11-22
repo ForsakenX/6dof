@@ -92,4 +92,4 @@ setmetatable(config, {
 	end
 })
 
-load_config('defaults.lua')
+load_config('main/defaults.lua')

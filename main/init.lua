@@ -40,9 +40,9 @@ function init(args)
 	end
 	program_name = args[1]
 	table.remove(args, 1)
-	dofile("util.lua")
-	dofile("vector.lua")
-	dofile("config.lua")
+	dofile("main/util.lua")
+	dofile("math/vector.lua")
+	dofile("main/config.lua")
 	for i, arg in ipairs(args) do
 		do_arg(arg)
 	end

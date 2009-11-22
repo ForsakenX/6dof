@@ -189,7 +189,7 @@ int input_init(void)
 		return ret;
 	inputs = input->get_inputs(&num_inputs);
 	input_luainit();
-	LUA_RUN("input.lua");
+	LUA_RUN("input/input.lua");
 
 	return 0;
 }
