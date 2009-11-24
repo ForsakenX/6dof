@@ -56,14 +56,6 @@
 		if (_err) return _err; \
 	}
 
-/* DEBUG is used like printf() but with an additional first
- * argument indicating the minimum debug level for the message. */
-#ifdef NDEBUG
-#define DEBUG(x...)
-#else
-#define DEBUG(level, x...) { if (debug_level >= level) fprintf(stderr, x); }
-#endif
-
 /* Used like printf(). */
 #ifdef NDEBUG
 #define ERROR(x...) \
@@ -106,6 +98,7 @@
 #define ABS(x) ((x)>=0?(x):-(x))
 #define SQ(x) ((x)*(x))
 
+#include "debug.h"
 #include "mem.h"
 #include "types.h"
 #include "endian.h"
