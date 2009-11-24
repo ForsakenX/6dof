@@ -76,7 +76,7 @@ FLAGS+=$(ADD_FLAGS)
 CFLAGS+=$(ADD_CFLAGS)
 LDFLAGS+=$(ADD_LDFLAGS)
 
-INCLUDE:=audio.h common.h config.h endian.h game.h gfx.h global.h input.h lua_binread.h model.h quaternion.h scalar.h time.h types.h vector.h
+INCLUDE:=audio.h common.h config.h endian.h game.h gfx.h global.h input.h lua_binread.h mem.h model.h quaternion.h scalar.h time.h types.h vector.h
 
 PCH=$(INCLDIR)/common.h.gch
 
