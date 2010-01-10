@@ -21,12 +21,40 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-/* DEBUG is used like printf() but with an additional first
- * argument indicating the minimum debug level for the message. */
+#define DBG_LEVELMASK 3
+#define DBG_CHANMASK ~DBG_LEVELMASK
+#define DBG_CHAN(x) ((x)<<2)
+
+/* Debug types. */
+#define DBG_AUDIO   0
+#define DBG_GENERAL 1
+#define DBG_GFX     2
+#define DBG_INPUT   3
+#define DBG_IO      4
+#define DBG_LEVEL   5
+#define DBG_LUA     6 /* C <-> Lua interface - not Lua scripts themselves. */
+#define DBG_MEM     7 /* Memory management. */
+
+/* DEBUGX is used like printf() but with two extra arguments before
+ * the format string:
+ *
+ *   - The first one specifies what this debug message is about;
+ *     see the above list of debug types.
+ *
+ *   - The second one specifies the minimum debug level needed for
+ *     the message to be printed.
+ *
+ *   Typically, a module will define a DEBUG macro to call DEBUGX
+ *   with a default type for that module.
+ */
+
 #ifdef NDEBUG
-#define DEBUG(x...)
+#define DEBUGX(x...)
 #else
-#define DEBUG(level, x...) { if (debug_level >= level) fprintf(stderr, x); }
+/* Trying to split the definition of this macro across multiple lines
+ * just makes it uglier. */
+#define DEBUGX(type, level, x...) \
+	{ if (debug_level >= level && (debug_level & DBG_CHANMASK) == DBG_CHAN(type)) fprintf(stderr, x); }
 #endif
 
 #endif /* DEBUG_H */
