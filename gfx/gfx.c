@@ -20,6 +20,8 @@
 
 #include "../include/common.h"
 
+#define DEBUG(level, x...) DEBUGX(DBG_GFX, level, x)
+
 struct gfx_driver *gfx;
 
 int lua_istexture(lua_State *L, int index)
@@ -339,7 +341,7 @@ int gfx_init(void)
 	};
 
 	DEBUG(1, "Initializing graphics subsystem\n");
-	DEBUG(2, "Using SDL for graphics\n");
+	DEBUG(1, "Using SDL for graphics\n");
 	gfx = &gfx_sdl;
 	CHECK(gfx->init());
 	luaL_register(L1, "gfx", funcs);
@@ -370,7 +372,7 @@ void gfx_prepmodel(const struct model *m)
 {
 	int i;
 
-	DEBUG(5, "Preparing model %p for rendering\n", m);
+	DEBUG(2, "Preparing model %p for rendering\n", m);
 	for (i=0; i < m->ngroups; i++)
 	{
 		if (m->groups[i].gfx_handle < 0)
@@ -382,7 +384,7 @@ void gfx_releasemodel(const struct model *m)
 {
 	int i;
 
-	DEBUG(5, "Releasing model %p from gfx system\n", m);
+	DEBUG(2, "Releasing model %p from gfx system\n", m);
 	for (i=0; i < m->ngroups; i++)
 	{
 		if (m->groups[i].gfx_handle >= 0)
