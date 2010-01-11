@@ -20,6 +20,8 @@
 
 #include "../include/common.h"
 
+#define DEBUG(level, x...) DEBUGX(DBG_AUDIO, level, x)
+
 struct audio_driver *audio;
 
 static int audio_luaload(lua_State *L)
@@ -174,10 +176,10 @@ int audio_init(void)
 
 	DEBUG(1, "Initializing audio subsystem\n");
 #ifdef AUDIO_SDLMIXER
-	DEBUG(2, "Using SDL_mixer for audio\n");
+	DEBUG(1, "Using SDL_mixer for audio\n");
 	audio = &audio_sdlmixer;
 #else
-	DEBUG(2, "Using dummy driver for audio (silence)\n");
+	DEBUG(1, "Using dummy driver for audio (silence)\n");
 	audio = &audio_null;
 #endif
 	ret = audio->init();
