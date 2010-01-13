@@ -4,6 +4,8 @@
 
 # Perhaps these should later be moved to a separate configuration file.
 DEBUG=0
+STRICT=0
+
 AUDIO_SDLMIXER=0
 GFX_SDL=1
 INPUT_SDL=1
@@ -17,10 +19,13 @@ CFLAGS=$(FLAGS)
 LDFLAGS=$(FLAGS)
 ifeq ($(DEBUG),1)
 	FLAGS+=-g
-	CFLAGS+=-Wall
+	CFLAGS+=-Wall -Wcast-qual -Wdeclaration-after-statement -Wfloat-equal -Wextra -Wmissing-prototypes -Wswitch-default -Wunreachable-code -Wunsafe-loop-optimizations
 else
 	CFLAGS+=-O2
 	LDFLAGS+=-s
+endif
+ifeq ($(STRICT),1)
+	CFLAGS+=-Wconversion -Wsign-conversion
 endif
 LIBS=-lm -llua
 
