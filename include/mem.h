@@ -25,7 +25,7 @@
 
 #define MALLOC(type, num) \
 	({ \
-		DEBUG(10, "malloc(%d, %zd /* %s */) = ", \
+		DEBUGX(DBG_MEM, 3, "malloc(%d, %zd /* %s */) = ", \
 			num, sizeof(type), #type \
 		); \
 		void *_p = malloc(num * sizeof(type)); \
@@ -34,13 +34,13 @@
 			ERROR("malloc(%d * sizeof(%s)) failed", num, #type); \
 			luaL_error(L1, "malloc() failed"); \
 		} \
-		DEBUG(10, "%p\n", _p); \
+		DEBUGX(DBG_MEM, 3, "%p\n", _p); \
 		_p; \
 	})
 
 #define CALLOC(type, num) \
 	({ \
-		DEBUG(10, "calloc(%d, %zd /* %s */) = ", \
+		DEBUGX(DBG_MEM, 3, "calloc(%d, %zd /* %s */) = ", \
 			num, sizeof(type), #type \
 		); \
 		void *_p = calloc(num, sizeof(type)); \
@@ -49,7 +49,7 @@
 			ERROR("calloc(%d, sizeof(%s)) failed", num, #type); \
 			luaL_error(L1, "calloc() failed"); \
 		} \
-		DEBUG(10, "%p\n", _p); \
+		DEBUGX(DBG_MEM, 3, "%p\n", _p); \
 		_p; \
 	})
 
@@ -61,13 +61,13 @@
 /* realloc() is typically used to allocate space for a list or
  * resize a list to some number of elements. */
 #define REALLOC(list, num) \
-	DEBUG(10, "realloc(%s /* %p */, %d * %zd) = ", \
+	DEBUGX(DBG_MEM, 3, "realloc(%s /* %p */, %d * %zd) = ", \
 		#list, list, (int) (num), sizeof(*(list)) \
 	); \
 	if ((num) > 0) \
 	{ \
 		list = realloc(list, (num) * sizeof(*(list))); \
-		DEBUG(10, "%p\n", list); \
+		DEBUGX(DBG_MEM, 3, "%p\n", list); \
 		if (!list) \
 		{ \
 			ERROR("realloc(%s, %d * %zd) failed", \
@@ -84,7 +84,7 @@
 /* memcpy() with type checking and inference. */
 #define MEMCPY(dest, src, nelem) \
 	({ \
-		DEBUG(10, "memcpy(%p, %p, %d * %zd)\n", \
+		DEBUGX(DBG_MEM, 3, "memcpy(%p, %p, %d * %zd)\n", \
 			dest, src, nelem, sizeof(*(dest)) \
 		); \
 		void *_p = \
@@ -99,7 +99,7 @@
 /* memset() with type inference (takes element count instead of
  * byte count. */
 #define MEMSET(mem, value, n) \
-	DEBUG(10, "memset(%p, %d, %d * %zd)\n", \
+	DEBUGX(DBG_MEM, 3, "memset(%p, %d, %d * %zd)\n", \
 		mem, value, n, sizeof(*(mem)) \
 	); \
 	memset(mem, value, (n) * sizeof(*(mem)));
@@ -107,7 +107,7 @@
 #define FREE(x) \
 	if (x) \
 	{ \
-		DEBUG(10, "free(%p)\n", x); \
+		DEBUGX(DBG_MEM, 3, "free(%p)\n", x); \
 		free(x); \
 		(x) = NULL; \
 	} \
