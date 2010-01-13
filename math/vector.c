@@ -18,9 +18,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef VECTOR_H
-#define VECTOR_H
-
 #include "../include/common.h"
 
 int vec_isnull(const vector *v)
@@ -205,5 +202,3 @@ void luaL_checkvector(lua_State *L, int index, vector *v)
 	v->z = (scalar) luaL_checknumber(L, -1);
 	lua_pop(L, 1);
 }
-
-#endif /* VECTOR_H */
