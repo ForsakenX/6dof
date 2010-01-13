@@ -25,13 +25,14 @@
 
 #define MALLOC(type, num) \
 	({ \
-		DEBUG(10, "malloc(%d, %zd /* %s */) = ", \
-			num, sizeof(type), #type \
+		void *_p; \
+		DEBUG(10, "malloc(%zd * %zd /* %s */) = ", \
+			(size_t) (num), sizeof(type), #type \
 		); \
-		void *_p = malloc(num * sizeof(type)); \
+		_p = malloc((size_t) (num) * sizeof(type)); \
 		if (!_p) \
 		{ \
-			ERROR("malloc(%d * sizeof(%s)) failed", num, #type); \
+			ERROR("malloc(%zd * sizeof(%s)) failed", (size_t) (num), #type); \
 			luaL_error(L1, "malloc() failed"); \
 		} \
 		DEBUG(10, "%p\n", _p); \
@@ -40,13 +41,14 @@
 
 #define CALLOC(type, num) \
 	({ \
-		DEBUG(10, "calloc(%d, %zd /* %s */) = ", \
-			num, sizeof(type), #type \
+		void *_p; \
+		DEBUG(10, "calloc(%zd, %zd /* %s */) = ", \
+			(size_t) (num), sizeof(type), #type \
 		); \
-		void *_p = calloc(num, sizeof(type)); \
+		_p = calloc((size_t) (num), sizeof(type)); \
 		if (!_p) \
 		{ \
-			ERROR("calloc(%d, sizeof(%s)) failed", num, #type); \
+			ERROR("calloc(%zd, sizeof(%s)) failed", (size_t) (num), #type); \
 			luaL_error(L1, "calloc() failed"); \
 		} \
 		DEBUG(10, "%p\n", _p); \
@@ -61,17 +63,17 @@
 /* realloc() is typically used to allocate space for a list or
  * resize a list to some number of elements. */
 #define REALLOC(list, num) \
-	DEBUG(10, "realloc(%s /* %p */, %d * %zd) = ", \
-		#list, list, (int) (num), sizeof(*(list)) \
+	DEBUG(10, "realloc(%s /* %p */, %zd * %zd) = ", \
+		#list, list, (size_t) (num), sizeof(*(list)) \
 	); \
 	if ((num) > 0) \
 	{ \
-		list = realloc(list, (num) * sizeof(*(list))); \
+		list = realloc(list, (size_t) (num) * sizeof(*(list))); \
 		DEBUG(10, "%p\n", list); \
 		if (!list) \
 		{ \
-			ERROR("realloc(%s, %d * %zd) failed", \
-				#list, num, sizeof(*(list)) \
+			ERROR("realloc(%s, %zd * %zd) failed", \
+				#list, (size_t) (num), sizeof(*(list)) \
 			); \
 			luaL_error(L1, "realloc() failed"); \
 		} \
@@ -84,13 +86,14 @@
 /* memcpy() with type checking and inference. */
 #define MEMCPY(dest, src, nelem) \
 	({ \
-		DEBUG(10, "memcpy(%p, %p, %d * %zd)\n", \
-			dest, src, nelem, sizeof(*(dest)) \
+		void *_p; \
+		DEBUG(10, "memcpy(%p, %p, %zd * %zd)\n", \
+			dest, src, (size_t) (nelem), sizeof(*(dest)) \
 		); \
-		void *_p = \
+		_p = \
 			__builtin_choose_expr( \
 				__builtin_types_compatible_p(typeof(*(dest)), typeof(*(src))), \
-				memcpy(dest, src, nelem * sizeof(*(dest))), \
+				memcpy(dest, src, (size_t) (nelem) * sizeof(*(dest))), \
 				(void) 0 \
 			); \
 		_p; \
@@ -99,10 +102,10 @@
 /* memset() with type inference (takes element count instead of
  * byte count. */
 #define MEMSET(mem, value, n) \
-	DEBUG(10, "memset(%p, %d, %d * %zd)\n", \
-		mem, value, n, sizeof(*(mem)) \
+	DEBUG(10, "memset(%p, %d, %zd * %zd)\n", \
+		mem, value, (size_t) (n), sizeof(*(mem)) \
 	); \
-	memset(mem, value, (n) * sizeof(*(mem)));
+	memset(mem, value, (size_t) (n) * sizeof(*(mem)));
 
 #define FREE(x) \
 	if (x) \
