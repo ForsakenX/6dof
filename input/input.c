@@ -191,7 +191,7 @@ static void input_luainit(void)
 	lua_newtable(L1);
 	lua_setfield(L1, -2, "funcs");
 	lua_pop(L1, 1);
-	DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n"
+	DEBUG(6, "input_luainit(): input module initialized (%d inputs)\n"
 		, num_inputs);
 }
 
