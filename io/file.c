@@ -20,6 +20,8 @@
 
 #include "../include/common.h"
 
+#define DEBUG(level, x...) DEBUGX(DBG_IO, level, x)
+
 #define VALID    0x01010101
 #define READABLE 0x02020202
 #define WRITABLE 0x04040404
@@ -36,7 +38,7 @@ io *io_open_file(const char *name, const char *mode)
 	io *f;
 	const char *c;
 
-	DEBUG(5, "Opening file \"%s\" with mode \"%s\"\n", name, mode);
+	DEBUG(2, "Opening file \"%s\" with mode \"%s\"\n", name, mode);
 	f = malloc(sizeof(io));
 	if (!f)
 		return NULL;
@@ -69,7 +71,7 @@ io *io_open_fd(int fd, const char *mode)
 {
 	io *f;
 
-	DEBUG(5, "Opening fd %d with mode \"%s\"\n", fd, mode);
+	DEBUG(2, "Opening fd %d with mode \"%s\"\n", fd, mode);
 	f = malloc(sizeof(io));
 	if (!f)
 		return NULL;
@@ -129,7 +131,7 @@ int io_read(void *buf, size_t len, io *f)
 		ERROR("io_read() called on unreadable I/O handle");
 		return INT_MIN;
 	}
-	DEBUG(7, "Reading %zd bytes from %s\n", len, f->desc);
+	DEBUG(3, "Reading %zd bytes from %s\n", len, f->desc);
 	n = fread(buf, 1, len, f->fh);
 	if (n <= 0)
 	{
@@ -160,7 +162,7 @@ int io_write(const void *buf, size_t len, io *f)
 		ERROR("io_write() called on unwritable I/O handle");
 		return INT_MIN;
 	}
-	DEBUG(7, "Writing %zd bytes from %s\n", len, f->desc);
+	DEBUG(3, "Writing %zd bytes from %s\n", len, f->desc);
 	n = fwrite(buf, 1, len, f->fh);
 	if (n <= 0)
 	{
