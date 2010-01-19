@@ -17,15 +17,26 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
--- Keep this in sync with include/debug.h
-DBG_AUDIO = 0
-DBG_GENERAL = 1
-DBG_GFX = 2
-DBG_INPUT = 3
-DBG_IO = 4
-DBG_LEVEL = 5
-DBG_LUA = 6
-DBG_MEM = 7
+-- Keep these in sync with include/debug.h
+debugchan = {
+	audio = 0;
+	general = 1;
+	gfx = 2;
+	input = 3;
+	io = 4;
+	level = 5;
+	lua = 6;
+	mem = 7;
+}
+
+DBG_AUDIO = debugchan.audio
+DBG_GENERAL = debugchan.general
+DBG_GFX = debugchan.gfx
+DBG_INPUT = debugchan.input
+DBG_IO = debugchan.io
+DBG_LEVEL = debugchan.level
+DBG_LUA = debugchan.lua
+DBG_MEM = debugchan.mem
 
 function warn(str)
 	print(str)
