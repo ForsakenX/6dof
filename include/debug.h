@@ -57,4 +57,8 @@
 	{ if (debug_level >= level && (debug_level & DBG_CHANMASK) == DBG_CHAN(type)) fprintf(stderr, x); }
 #endif
 
+/* Sets initial debug level and binds debugging-related functions
+ * into the Lua environment. */
+void debug_init(void);
+
 #endif /* DEBUG_H */

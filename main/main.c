@@ -34,43 +34,10 @@ static int lua_create(void)
 	return 0;
 }
 
-static int lua_debug_level(lua_State *L)
-{
-	int argc;
-	int n;
-
-	argc = lua_gettop(L);
-	/* No arguments -> query debug level */
-	if (argc == 0)
-	{
-		lua_pushinteger(L, debug_level);
-		return 1;
-	}
-	else if (argc == 1)
-	{
-		/* One argument -> change debug level */
-		n = lua_tointeger(L, 1);
-		if (n + debug_level > 0)
-		{
-			DEBUG(0, "Debug level set to %d\n", n);
-		}
-		debug_level = n;
-	}
-	else
-	{
-		luaL_error(L, "too many arguments (expected 1, got %d)", argc);
-	}
-	return 0;
-}
-
 static int lua_init(int argc, char *argv[])
 {
 	int err;
 	int i;
-
-	/* Export debug_level function to Lua environment. */
-	lua_pushcfunction(L1, lua_debug_level);
-	lua_setglobal(L1, "debuglevel");
 
 	LUA_RUN("main/init.lua");
 	lua_settop(L1, 0);
@@ -92,6 +59,7 @@ static int lua_init(int argc, char *argv[])
 static int init(int argc, char *argv[])
 {
 	CHECK(lua_create());
+	debug_init();
 	CHECK(lua_init(argc, argv));
 	CHECK(luafuncs_register(L1));
 #ifdef SDL
