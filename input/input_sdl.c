@@ -20,6 +20,8 @@
 
 #include "../include/common.h"
 
+#define DEBUG(level, x...) DEBUGX(DBG_INPUT, level, x)
+
 #define MAX_INPUTS 512
 #define MAX_JOYSTICKS 4
 
@@ -379,7 +381,7 @@ static void add_joystick_control(struct joystick *joy, int type, int n)
 		,(type==BUTTON?"btn":(type==AXIS?"axis":"ball"))
 		,n+1
 	);
-	DEBUG(5, "Adding %s %d on joystick %s as input \"%s\" (%d)\n"
+	DEBUG(1, "Adding %s %d on joystick %s as input \"%s\" (%d)\n"
 		,(type==BUTTON?"button":(type==AXIS?"axis":"trackball"))
 		,n+1
 		,joy->name
@@ -397,17 +399,17 @@ static void init_joysticks(void)
 	int n, i, j, k;
 	struct joystick *joy;
 
-	DEBUG(4, "input_sdl: init_joysticks()\n");
+	DEBUG(1, "input_sdl: init_joysticks()\n");
 	n = SDL_NumJoysticks();
 	if (n <= 0)
 	{
-		DEBUG(2, "No joysticks found\n");
+		DEBUG(1, "No joysticks found\n");
 		return;
 	}
 	if (debug_level >= 2)
 	{
 		for (i=0; i<n; i++)
-			DEBUG(2, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
+			DEBUG(1, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
 	}
 	if (n > MAX_JOYSTICKS)
 	{
@@ -437,11 +439,11 @@ static void init_joysticks(void)
 			for (k=0; k < joy->balls; k++)
 				add_joystick_control(joy, POINTER, k);
 			j++;
-			DEBUG(2, "Initialized joystick %s: %d axes, %d buttons"
+			DEBUG(1, "Initialized joystick %s: %d axes, %d buttons"
 				, joy->name, joy->axes, joy->buttons);
 			if (joy->balls > 0)
-				DEBUG(2, ", %d trackballs", joy->balls);
-			DEBUG(2, "\n");
+				DEBUG(1, ", %d trackballs", joy->balls);
+			DEBUG(1, "\n");
 		}
 		else
 		{
@@ -459,7 +461,7 @@ static int init(void)
 {
 	int i;
 
-	DEBUG(3, "input_sdl: init()\n");
+	DEBUG(1, "input_sdl: init()\n");
 	for (i=0; fixed_inputs[i].type; i++)
 	{
 		inputs[i].type = fixed_inputs[i].type;
@@ -471,7 +473,7 @@ static int init(void)
 	mouse_mode = MOUSE_POINTER;
 	if (config_get_int("joystick"))
 	{
-		DEBUG(3, "input_sdl: initializing joystick subsystem\n");
+		DEBUG(1, "input_sdl: initializing joystick subsystem\n");
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK))
 		{
 			ERROR("SDL_InitSubSystem(): %s", SDL_GetError());
@@ -485,10 +487,10 @@ static int init(void)
 
 static void shutdown(void)
 {
-	DEBUG(3, "input_sdl: shutdown()\n");
+	DEBUG(1, "input_sdl: shutdown()\n");
 	if (num_joysticks > 0)
 	{
-		DEBUG(3, "input_sdl: shutting down joystick subsystem\n");
+		DEBUG(1, "input_sdl: shutting down joystick subsystem\n");
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 	}
 	num_inputs = 0;
@@ -499,13 +501,13 @@ static const struct input *get_inputs(int *n)
 {
 	if (n)
 	{
-		DEBUG(10, "input_sdl: get_inputs(%p <- %d) = %p\n"
+		DEBUG(3, "input_sdl: get_inputs(%p <- %d) = %p\n"
 			, n, num_inputs, inputs);
 		*n = num_inputs;
 	}
 	else
 	{
-		DEBUG(10, "input_sdl: get_inputs(NULL) = %p\n", inputs);
+		DEBUG(3, "input_sdl: get_inputs(NULL) = %p\n", inputs);
 	}
 	return inputs;
 }
@@ -515,7 +517,7 @@ static int get_event(struct input_event *event, int wait)
 	SDL_Event sdl_ev;
 	int ret;
 
-	DEBUG(8, "input_sdl: get_event(x, %s %d)\n"
+	DEBUG(3, "input_sdl: get_event(x, %s %d)\n"
 		,wait?"/*wait*/":"/*poll*/"
 		,wait);
 	if (wait)
@@ -537,11 +539,11 @@ static int get_event(struct input_event *event, int wait)
 			event->pressed = sdl_ev.type == SDL_KEYDOWN;
 			if (event->pressed)
 			{
-				DEBUG(6, "Key press event, id == %d\n", event->id);
+				DEBUG(3, "Key press event, id == %d\n", event->id);
 			}
 			else
 			{
-				DEBUG(6, "Key release event, id == %d\n", event->id);
+				DEBUG(3, "Key release event, id == %d\n", event->id);
 			}
 			break;
 		case SDL_MOUSEMOTION:
@@ -551,7 +553,7 @@ static int get_event(struct input_event *event, int wait)
 				event->id = SDLK_LAST+11;
 				event->x = sdl_ev.motion.x;
 				event->y = sdl_ev.motion.y;
-				DEBUG(6, "Mouse pointer event, id == %d, pos = (%g, %g)\n", event->id, event->x, event->y);
+				DEBUG(3, "Mouse pointer event, id == %d, pos = (%g, %g)\n", event->id, event->x, event->y);
 			}
 			else if (mouse_mode == MOUSE_MOVE)
 			{
@@ -559,7 +561,7 @@ static int get_event(struct input_event *event, int wait)
 				event->id = SDLK_LAST+12;
 				event->x = sdl_ev.motion.xrel;
 				event->y = sdl_ev.motion.yrel;
-				DEBUG(6, "Mouse motion event, id == %d, movement = (%g, %g)\n", event->id, event->x, event->y);
+				DEBUG(3, "Mouse motion event, id == %d, movement = (%g, %g)\n", event->id, event->x, event->y);
 			}
 			else
 			{
@@ -575,7 +577,7 @@ static int get_event(struct input_event *event, int wait)
 				event->type = WHEEL;
 				event->id = SDLK_LAST+16;
 				event->value = -1;
-				DEBUG(6, "Mouse wheel (up) event, id == %d\n", event->id);
+				DEBUG(3, "Mouse wheel (up) event, id == %d\n", event->id);
 				break;
 			}
 			else if (sdl_ev.button.button == SDL_BUTTON_WHEELDOWN)
@@ -583,7 +585,7 @@ static int get_event(struct input_event *event, int wait)
 				event->type = WHEEL;
 				event->id = SDLK_LAST+16;
 				event->value = 1;
-				DEBUG(6, "Mouse wheel (down) event, id == %d\n", event->id);
+				DEBUG(3, "Mouse wheel (down) event, id == %d\n", event->id);
 				break;
 			}
 			/* If neither, pass it through to the code below. */
@@ -609,11 +611,11 @@ static int get_event(struct input_event *event, int wait)
 			event->pressed = sdl_ev.type == SDL_MOUSEBUTTONDOWN;
 			if (event->pressed)
 			{
-				DEBUG(6, "Mouse button press event, id == %d\n", event->id);
+				DEBUG(3, "Mouse button press event, id == %d\n", event->id);
 			}
 			else
 			{
-				DEBUG(6, "Mouse button release event, id == %d\n", event->id);
+				DEBUG(3, "Mouse button release event, id == %d\n", event->id);
 			}
 			break;
 		case SDL_JOYAXISMOTION:
@@ -624,7 +626,7 @@ static int get_event(struct input_event *event, int wait)
 				,sdl_ev.jaxis.axis
 			);
 			event->value = (float) sdl_ev.jaxis.value / 32768.0f;
-			DEBUG(6, "Joystick axis event, id == %d, value = %g\n", event->id, event->value);
+			DEBUG(3, "Joystick axis event, id == %d, value = %g\n", event->id, event->value);
 			break;
 		case SDL_JOYBUTTONDOWN:
 		case SDL_JOYBUTTONUP:
@@ -635,7 +637,7 @@ static int get_event(struct input_event *event, int wait)
 				,sdl_ev.jbutton.button
 			);
 			event->pressed = sdl_ev.type == SDL_JOYBUTTONDOWN;
-			DEBUG(6, "Joystick button event, id == %d, state = %s\n", event->id, event->pressed ? "pressed" : "released");
+			DEBUG(3, "Joystick button event, id == %d, state = %s\n", event->id, event->pressed ? "pressed" : "released");
 			break;
 		case SDL_JOYBALLMOTION:
 			event->type = POINTER;
@@ -646,16 +648,16 @@ static int get_event(struct input_event *event, int wait)
 			);
 			event->x = sdl_ev.jball.xrel;
 			event->y = sdl_ev.jball.yrel;
-			DEBUG(6, "Joystick trackball event, id == %d, movement = (%d, %d)\n", event->id, sdl_ev.jball.xrel, sdl_ev.jball.yrel);
+			DEBUG(3, "Joystick trackball event, id == %d, movement = (%d, %d)\n", event->id, sdl_ev.jball.xrel, sdl_ev.jball.yrel);
 			break;
 		case SDL_QUIT:
 			event->type = BUTTON;
 			event->id = SDLK_LAST+1;
 			event->pressed = 1;
-			DEBUG(6, "Quit event, id == %d\n", event->id);
+			DEBUG(3, "Quit event, id == %d\n", event->id);
 			break;
 		default:
-			DEBUG(7, "Unhandled event (discarded)\n");
+			DEBUG(3, "Unhandled event (discarded)\n");
 			return 1;
 	}
 
@@ -666,7 +668,7 @@ static void clear_queue(void)
 {
 	SDL_Event null;
 
-	DEBUG(6, "input_sdl: clear_queue()\n");
+	DEBUG(2, "input_sdl: clear_queue()\n");
 	while (SDL_PollEvent(&null));
 }
 
@@ -675,16 +677,16 @@ static void set_mouse_mode(int mode)
 	switch (mode)
 	{
 		case MOUSE_POINTER:
-			DEBUG(6, "input_sdl: set_mouse_mode(MOUSE_POINTER)\n");
+			DEBUG(2, "input_sdl: set_mouse_mode(MOUSE_POINTER)\n");
 			mouse_mode = MOUSE_POINTER;
-			DEBUG(5, "input_sdl: releasing input\n");
+			DEBUG(2, "input_sdl: releasing input\n");
 			SDL_ShowCursor(SDL_ENABLE);
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
 			break;
 		case MOUSE_MOVE:
-			DEBUG(6, "input_sdl: set_mouse_mode(MOUSE_MOVE)\n");
+			DEBUG(2, "input_sdl: set_mouse_mode(MOUSE_MOVE)\n");
 			mouse_mode = MOUSE_MOVE;
-			DEBUG(5, "input_sdl: grabbing input\n");
+			DEBUG(2, "input_sdl: grabbing input\n");
 			SDL_ShowCursor(SDL_DISABLE);
 			SDL_WM_GrabInput(SDL_GRAB_ON);
 			break;

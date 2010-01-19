@@ -20,6 +20,8 @@
 
 #include "../include/common.h"
 
+#define DEBUG(level, x...) DEBUGX(DBG_INPUT, level, x)
+
 struct input_driver *input;
 
 int num_inputs;
@@ -66,7 +68,7 @@ static int input_from_lua(lua_State *L)
 		return 0;
 	}
 	event = lua_touserdata(L, 1);
-	DEBUG(8, "C function (%p) triggered by input event with id %d\n"
+	DEBUG(2, "C function (%p) triggered by input event with id %d\n"
 		, f, event->id
 	);
 	lua_pop(L, 1);
@@ -191,7 +193,7 @@ static void input_luainit(void)
 	lua_newtable(L1);
 	lua_setfield(L1, -2, "funcs");
 	lua_pop(L1, 1);
-	DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n"
+	DEBUG(1, "init_lua_table(): input module initialized (%d inputs)\n"
 		, num_inputs);
 }
 
@@ -200,7 +202,7 @@ int input_init(void)
 	int ret;
 
 	DEBUG(1, "Initializing input subsystem\n");
-	DEBUG(2, "Using SDL for input\n");
+	DEBUG(1, "Using SDL for input\n");
 	input = &input_sdl;
 	ret = input->init();
 	if (ret)
@@ -234,7 +236,7 @@ void input_process_events(int wait)
 	struct input_event event;
 	int i;
 
-	DEBUG(8, "Processing input events\n");
+	DEBUG(3, "Processing input events\n");
 	lua_getglobal(L1, "input");
 	lua_getfield(L1, -1, "bindings");
 	while (!input->get_event(&event, wait))
@@ -243,13 +245,13 @@ void input_process_events(int wait)
 		lua_gettable(L1, -2);
 		if (lua_isnil(L1, -1))
 		{
-			DEBUG(6, "Unbound input event (id == %d)\n", event.id);
+			DEBUG(2, "Unbound input event (id == %d)\n", event.id);
 			/* Pop the function from the stack. */
 			lua_pop(L1, 1);
 		}
 		else if (lua_iscfunction(L1, -1))
 		{
-			DEBUG(5, "Calling C function for input event %d\n", event.id);
+			DEBUG(2, "Calling C function for input event %d\n", event.id);
 			lua_pushlightuserdata(L1, &event);
 			if (lua_pcall(L1, 1, 0, 0))
 			{
@@ -258,7 +260,7 @@ void input_process_events(int wait)
 		}
 		else if (lua_isfunction(L1, -1))
 		{
-			DEBUG(5, "Calling Lua function for input event %d\n", event.id);
+			DEBUG(2, "Calling Lua function for input event %d\n", event.id);
 			push_lua_event_data(L1, &event);
 			if (lua_pcall(L1, 1, 0, 0))
 			{
@@ -277,7 +279,7 @@ void input_process_events(int wait)
 			}
 			push_lua_event_data(L1, &event);
 			i = push_lua_table(L1, -3);
-			DEBUG(5, "Calling function for input event %d (with %d arguments)\n"
+			DEBUG(2, "Calling function for input event %d (with %d arguments)\n"
 				, event.id, i);
 			if (lua_pcall(L1, i+1, 0, 0))
 			{
