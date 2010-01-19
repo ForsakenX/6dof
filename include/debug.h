@@ -25,7 +25,7 @@
 #define DBG_CHANMASK ~DBG_LEVELMASK
 #define DBG_CHAN(x) ((x)<<2)
 
-/* Debug types. */
+/* Debug types. Keep in sync with main/util.lua */
 #define DBG_AUDIO   0
 #define DBG_GENERAL 1
 #define DBG_GFX     2

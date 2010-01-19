@@ -17,11 +17,15 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
-function DEBUG(level, ...)
-	if type(debuglevel) == 'function' and debuglevel() >= level then
-		print(string.format(...))
-	end
-end
+-- Keep this in sync with include/debug.h
+DBG_AUDIO = 0
+DBG_GENERAL = 1
+DBG_GFX = 2
+DBG_INPUT = 3
+DBG_IO = 4
+DBG_LEVEL = 5
+DBG_LUA = 6
+DBG_MEM = 7
 
 function warn(str)
 	print(str)
