@@ -91,6 +91,7 @@ static const struct luaL_Reg funcs[] =
 {
 	 { "DEBUGX", lua_debug_print }
 	,{ "debuglevel", lua_debug_level }
+	,{ NULL, NULL }
 };
 
 void debug_init(void)
