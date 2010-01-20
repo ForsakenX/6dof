@@ -3,7 +3,7 @@
 -- This Lua script reads vertex/face data from a Descent 3 .oof object
 -- polymodel file.
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,19 +20,23 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local function DEBUG(level, str)
+	DEBUGX(DBG_LEVEL, level, str)
+end
+
 local verts = {}
 local faces = {}
 
 local vert_offset = 1
 local attach = { [-1]=vec(0,0,0) }
 
-DEBUG(4, "Loading "..config.lvlfile)
+DEBUG(2, "Loading "..config.lvlfile)
 local f = binfile(io.open(config.lvlfile, 'rb'))
 local hdrID, ver = f:binread('ii')
 if hdrID ~= 0x4f505350 then
 	error('not an OOF file')
 end
-DEBUG(4, "OOF version: "..ver)
+DEBUG(2, "OOF version: "..ver)
 if ver ~= 2200 and ver ~= 2300 then
 	error('invalid OOF version number (expected 2200 (0x898) or 2300 (0x8fc))')
 end
@@ -42,19 +46,19 @@ while chunktype ~= nil and chunktype:len() == 4 do
 	if chunktype == 'SOBJ' then
 		local verts_in_this_group = 0
 		local sobj_num = f:binread('i')
-		DEBUG(6, 'Reading subobject '..sobj_num)
+		DEBUG(3, 'Reading subobject '..sobj_num)
 		local parent_idx = f:binread('i')
-		DEBUG(6, 'Parent object index is '..parent_idx)
+		DEBUG(3, 'Parent object index is '..parent_idx)
 		f:read(28)
 		-- Attachpoint
 		local offset = f:binread('v')
-		DEBUG(6, 'Attachpoint relative to parent is '..tostring(offset))
+		DEBUG(3, 'Attachpoint relative to parent is '..tostring(offset))
 		offset = offset + attach[parent_idx]
 		attach[sobj_num] = offset
-		DEBUG(6, "This sobj's attachpoint is "..tostring(attach[sobj_num]))
+		DEBUG(3, "This sobj's attachpoint is "..tostring(attach[sobj_num]))
 		f:read(24)
-		DEBUG(6, ('Subobject name is "%s"'):format(f:binread('t')))
-		DEBUG(6, ('Subobject properties: "%s"'):format(f:binread('t')))
+		DEBUG(3, ('Subobject name is "%s"'):format(f:binread('t')))
+		DEBUG(3, ('Subobject properties: "%s"'):format(f:binread('t')))
 		f:read(12)
 		local nverts = f:binread('i')
 		for i = 1, nverts do
@@ -94,5 +98,5 @@ while chunktype ~= nil and chunktype:len() == 4 do
 end
 f:close()
 
-DEBUG(4, ("%s: %d vertices, %d faces"):format(config.lvlfile, #verts, #faces))
+DEBUG(1, ("%s: %d vertices, %d faces"):format(config.lvlfile, #verts, #faces))
 return { vertices = verts, faces = faces }

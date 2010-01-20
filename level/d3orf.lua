@@ -3,7 +3,7 @@
 -- This Lua script reads vertex/face data from a Descent 3 .orf level
 -- room file.
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,17 +20,21 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local function DEBUG(level, str)
+	DEBUGX(DBG_LEVEL, level, str)
+end
+
 local verts = {}
 local faces = {}
 
-DEBUG(4, "Loading "..config.lvlfile)
+DEBUG(2, "Loading "..config.lvlfile)
 local f = binfile(io.open(config.lvlfile, 'rb'))
 local hdrID, size, ver, nverts, nfaces = f:binread('iiiii')
-DEBUG(4, ("Header says %d verts, %d faces"):format(nverts, nfaces))
+DEBUG(2, ("Header says %d verts, %d faces"):format(nverts, nfaces))
 local chunktype = f:binread('i')
 while chunktype ~= 3 do
 	local chunksize = f:binread('i')
-	DEBUG(5, ("Chunk type: %d, size: %d"):format(chunktype,chunksize))
+	DEBUG(3, ("Chunk type: %d, size: %d"):format(chunktype,chunksize))
 	if chunktype == 1 then
 		-- For each vertex...
 		for i = 1, nverts do
@@ -58,5 +62,5 @@ while chunktype ~= 3 do
 end
 f:close()
 
-DEBUG(4, ("%s: %d vertices, %d faces"):format(config.lvlfile, #verts, #faces))
+DEBUG(1, ("%s: %d vertices, %d faces"):format(config.lvlfile, #verts, #faces))
 return { vertices = verts, faces = faces }

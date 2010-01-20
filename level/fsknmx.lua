@@ -3,7 +3,7 @@
 -- This Lua script reads vertex/face data from a Forsaken .mx/.mxa/.mxv
 -- polymodel file.
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
 -- with this program; if not, see <http://www.gnu.org/licenses/>, or write
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
+
+local function DEBUG(level, str)
+	DEBUGX(DBG_LEVEL, level, str)
+end
 
 local textures = {}
 local matlist = {}
@@ -169,5 +173,5 @@ for i = 1, f:binread('h') do
 end
 f:close()
 
-DEBUG(4, ("%s: %d vertices, %d triangles"):format(config.lvlfile, #verts, #triangles))
+DEBUG(1, ("%s: %d vertices, %d triangles"):format(config.lvlfile, #verts, #triangles))
 return { vertices = verts, faces = triangles }
