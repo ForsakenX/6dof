@@ -23,7 +23,7 @@
 
 #define DBG_LEVELMASK 3
 #define DBG_CHANMASK ~DBG_LEVELMASK
-#define DBG_CHAN(x) ((x)<<2)
+#define DBG_CHAN(x) (1<<(x+2))
 
 /* Debug types. Keep in sync with main/util.lua */
 #define DBG_AUDIO   0
@@ -54,7 +54,7 @@
 /* Trying to split the definition of this macro across multiple lines
  * just makes it uglier. */
 #define DEBUGX(type, level, x...) \
-	{ if (debug_level >= level && (debug_level & DBG_CHANMASK) == DBG_CHAN(type)) fprintf(stderr, x); }
+	{ if ((debug_level & DBG_LEVELMASK) >= level && (debug_level & DBG_CHANMASK & DBG_CHAN(type))) fprintf(stderr, x); }
 #endif
 
 /* Sets initial debug level and binds debugging-related functions
