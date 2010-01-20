@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
  */
 
 #include "../include/common.h"
+
+#define DEBUG(level, x...) DEBUGX(DBG_GENERAL, level, x)
 
 static struct model *level;
 
@@ -177,10 +179,10 @@ static void do_camera_physics(vector *cam_pos, quat *cam_orient)
 
 static void clear_level(void)
 {
-	DEBUG(3, "game: clear_level()\n");
+	DEBUG(2, "game: clear_level()\n");
 	if (level)
 	{
-		DEBUG(3, "Unloading level\n");
+		DEBUG(1, "Unloading level\n");
 		model_destroy(level);
 		lua_pushnil(L1);
 		lua_setglobal(L1, "level");
@@ -242,7 +244,7 @@ int load_level(const char *filename)
 	const char *err;
 	int ret;
 
-	DEBUG(3, "game: load_level(\"%s\")\n", filename);
+	DEBUG(1, "game: load_level(\"%s\")\n", filename);
 	ret = luaL_dofile(L1, filename);
 	if (ret)
 	{
@@ -307,7 +309,7 @@ int game_main(void)
 	cam_pos = &scene->camera.pos;
 	cam_orient = &scene->camera.orient;
 	do_camera_physics(cam_pos, cam_orient);
-	DEBUG(9, "Camera position = (%g, %g, %g)\n", cam_pos->x, cam_pos->y, cam_pos->z);
+	DEBUG(3, "Camera position = (%g, %g, %g)\n", cam_pos->x, cam_pos->y, cam_pos->z);
 	gfx->render();
 	frames++;
 	return quit;

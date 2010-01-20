@@ -1,6 +1,6 @@
 -- vim:set sw=4 ts=4:
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,9 +17,13 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local function DEBUG(level, str)
+	DEBUGX(DBG_GENERAL, level, str)
+end
+
 -- Thanks to Methods for the setfenv suggestion
 function load_config(name)
-	DEBUG(3, "Loading configuration from "..name)
+	DEBUG(1, "Loading configuration from "..name)
 	local rawcfg = {}
 	rawset(config, '_config', rawcfg)
 	setfenv(loadfile(name), rawcfg)()
@@ -27,7 +31,7 @@ function load_config(name)
 end
 
 function write_config(name)
-	DEBUG(3, "Writing configuration to "..name)
+	DEBUG(1, "Writing configuration to "..name)
 	local f = file.open(name, 'wb')
 	for key, value in pairs(config._config) do
 		f:write(key.." = "..tostring(value).."\n")
@@ -36,10 +40,7 @@ function write_config(name)
 end
 
 local function config_checkvalue(k, v)
-	if k == 'debug' then
-		v = tonumber(v)
-		if v < -10 or v > 10 then return "value must be in range -10 to 10" end
-	elseif k == 'dummyint' then
+	if k == 'dummyint' then
 		v = tonumber(v)
 		if v == nil then return "value must be a number" end
 		if v < 0 or v > 4 then return "value must be in range 0 to 4" end

@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
  */
 
 #include "../include/common.h"
+
+/* TODO: should probably get its own separate debug channel later. */
+#define DEBUG(level, x...) DEBUGX(DBG_GFX, level, x)
 
 int lua_ismesh(lua_State *L, int index)
 {
@@ -44,7 +47,7 @@ static void mesh_clear(struct mesh *m)
 {
 	int i;
 
-	DEBUG(9, "Destroying %d verts, %d faces\n",
+	DEBUG(3, "Destroying %d verts, %d faces\n",
 		m->nverts, m->nfaces);
 	if (m->nverts && m->verts)
 	{
@@ -64,14 +67,14 @@ struct mesh *mesh_create(void)
 {
 	struct mesh *m;
 	m = CALLOC1(struct mesh);
-	DEBUG(10, "mesh_create() = %p\n", m);
+	DEBUG(3, "mesh_create() = %p\n", m);
 	m->gfx_handle = -1;
 	return m;
 }
 
 void mesh_destroy(struct mesh *m)
 {
-	DEBUG(7, "Destroying mesh at %p\n", m);
+	DEBUG(2, "Destroying mesh at %p\n", m);
 	mesh_clear(m);
 	if (m->gfx_handle >= 0)
 		gfx->release_mesh(m->gfx_handle);
@@ -82,7 +85,7 @@ void mesh_copy(struct mesh *to, const struct mesh *from)
 {
 	int i;
 
-	DEBUG(7, "Copying mesh at %p (%d verts, %d faces) to %p\n"
+	DEBUG(2, "Copying mesh at %p (%d verts, %d faces) to %p\n"
 		, from, from->nverts, from->nfaces, to);
 	if (to->nverts || to->nfaces)
 		mesh_clear(to);
@@ -106,12 +109,12 @@ void mesh_copy(struct mesh *to, const struct mesh *from)
 		MEMCPY(to->faces[i].verts, from->faces[i].verts, nverts);
 	}
 	to->nfaces = from->nfaces;
-	DEBUG(7, "%d verts, %d faces copied\n", to->nverts, to->nfaces);
+	DEBUG(2, "%d verts, %d faces copied\n", to->nverts, to->nfaces);
 }
 
 void mesh_addverts(struct mesh *m, const vertex *verts, int nverts)
 {
-	DEBUG(7, "Adding %d vertices to mesh\n", nverts);
+	DEBUG(3, "Adding %d vertices to mesh\n", nverts);
 	/* Allocate space for the updated list. */
 	REALLOC(m->verts, m->nverts + nverts);
 	/* Insert the new vertices. */
@@ -126,9 +129,9 @@ void mesh_addluaverts(struct mesh *m, lua_State *L, int index)
 	int i;
 	vertex *v;
 
-	DEBUG(6, "Adding vertices from Lua array at index %d\n", index);
+	DEBUG(2, "Adding vertices from Lua array at index %d\n", index);
 	n = lua_objlen(L, index);
-	DEBUG(6, "Length of array reported as %d\n", n);
+	DEBUG(2, "Length of array reported as %d\n", n);
 	REALLOC(m->verts, m->nverts + n);
 	for (i=0; i<n; i++)
 	{
@@ -138,19 +141,19 @@ void mesh_addluaverts(struct mesh *m, lua_State *L, int index)
 		{
 			v = &m->verts[m->nverts + i];
 			lua_tovertex(L, -1, v);
-			DEBUG(6, "Added vertex (%g, %g, %g)\n", v->x, v->y, v->z);
+			DEBUG(3, "Added vertex (%g, %g, %g)\n", v->x, v->y, v->z);
 		}
 		lua_pop(L, 1);
 	}
 	m->nverts += i;
-	DEBUG(6, "%d vertices added, current total is %d\n", i, m->nverts);
+	DEBUG(2, "%d vertices added, current total is %d\n", i, m->nverts);
 }
 
 void mesh_addface(struct mesh *m, const struct polygon *face)
 {
 	struct polygon *to;
 
-	DEBUG(7, "Adding polygon with %d vertices\n", face->nverts);
+	DEBUG(3, "Adding polygon with %d vertices\n", face->nverts);
 	REALLOC(m->faces, m->nfaces + 1);
 	to = &m->faces[m->nfaces];
 	to->nverts = face->nverts;
@@ -223,9 +226,9 @@ void mesh_addluafaces(struct mesh *m, lua_State *L, int index)
 {
 	int n, i;
 
-	DEBUG(6, "Adding faces from Lua array at index %d\n", index);
+	DEBUG(2, "Adding faces from Lua array at index %d\n", index);
 	n = lua_objlen(L, index);
-	DEBUG(6, "Length of array reported as %d\n", n);
+	DEBUG(2, "Length of array reported as %d\n", n);
 	REALLOC(m->faces, m->nfaces + n);
 	MEMSET(&m->faces[m->nfaces], 0, n);
 	for (i=1; i<=n; i++)
@@ -238,7 +241,7 @@ void mesh_addluafaces(struct mesh *m, lua_State *L, int index)
 		lua_pop(L, 1);
 		m->nfaces++;
 	}
-	DEBUG(6, "%d faces added, current total is %d\n", i-1, m->nfaces);
+	DEBUG(2, "%d faces added, current total is %d\n", i-1, m->nfaces);
 }
 
 struct mesh *luaL_checkmesh(lua_State *L, int index)
@@ -294,8 +297,8 @@ struct model *model_create(const struct mesh *data)
 	m = CALLOC1(struct model);
 	if (data)
 	{
-		DEBUG(10, "model_create(%p) = %p\n", data, m);
-		DEBUG(7, "Created new model\n");
+		DEBUG(3, "model_create(%p) = %p\n", data, m);
+		DEBUG(2, "Created new model\n");
 		m->ngroups = 1;
 		m->groups = mesh_create();
 		mesh_copy(m->groups, data);
@@ -303,8 +306,8 @@ struct model *model_create(const struct mesh *data)
 	}
 	else
 	{
-		DEBUG(10, "model_create(NULL) = %p\n", m);
-		DEBUG(7, "Created new empty model\n");
+		DEBUG(3, "model_create(NULL) = %p\n", m);
+		DEBUG(2, "Created new empty model\n");
 	}
 
 	return m;
@@ -314,7 +317,7 @@ void model_destroy(struct model *m)
 {
 	int i;
 
-	DEBUG(7, "Destroying model %p\n", m);
+	DEBUG(2, "Destroying model %p\n", m);
 	for (i=0; i < m->ngroups; i++)
 		mesh_clear(&m->groups[i]);
 	FREE(m->groups);
@@ -324,7 +327,7 @@ void model_destroy(struct model *m)
 
 void model_addgroup(struct model *m, const struct mesh *g, const vector *offset)
 {
-	DEBUG(7, "Adding group to model, total = %d\n", m->ngroups + 1);
+	DEBUG(2, "Adding group to model, total = %d\n", m->ngroups + 1);
 	REALLOC(m->groups, m->ngroups + 1);
 	REALLOC(m->offsets, m->ngroups + 1);
 	mesh_copy(&m->groups[m->ngroups], g);
@@ -336,7 +339,7 @@ void model_rmgroups(struct model *m, int from, int to)
 {
 	int i;
 
-	DEBUG(7, "Removing groups %d to %d from model\n", from, to - 1);
+	DEBUG(2, "Removing groups %d to %d from model\n", from, to - 1);
 	if (from < 0 || to > m->ngroups)
 	{
 		ERROR("tried to remove non-existent sub-model");
@@ -344,7 +347,7 @@ void model_rmgroups(struct model *m, int from, int to)
 	}
 	else if (to < from+1)
 	{
-		DEBUG(7, "No groups to remove\n");
+		DEBUG(2, "No groups to remove\n");
 		return;
 	}
 	for (i=from; i<to; i++)
