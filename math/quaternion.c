@@ -56,6 +56,7 @@ void quat_conj(quat *q, const quat *q1)
 	q->x = -q1->x;
 	q->y = -q1->y;
 	q->z = -q1->z;
+	q->w = q1->w;
 }
 
 void quat_mul(quat *q, const quat *q1, const quat *q2)

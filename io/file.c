@@ -170,7 +170,7 @@ int io_write(const void *buf, size_t len, io *f)
 			return -errno;
 		else
 		{
-			ERROR("WTF - read failed but no EOF/error reported");
+			ERROR("WTF - write failed but no EOF/error reported");
 			return INT_MIN;
 		}
 	}
