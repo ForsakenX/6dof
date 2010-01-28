@@ -1,4 +1,6 @@
 debug = 0
+debuglvl = 0
+debugmask = 0
 
 -- Video configuration
 fullscreen = false

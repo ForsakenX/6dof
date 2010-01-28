@@ -1,6 +1,6 @@
 include ../global.make
 
-OBJS=config.o game.o global.o main.o model.o time.o
+OBJS=config.o debug.o game.o global.o main.o model.o time.o
 
 LIB=../main.a
 

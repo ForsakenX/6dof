@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,15 +56,8 @@
 		if (_err) return _err; \
 	}
 
-/* DEBUG is used like printf() but with an additional first
- * argument indicating the minimum debug level for the message. */
-#ifdef NDEBUG
-#define DEBUG(x...)
-#else
-#define DEBUG(level, x...) { if (debug_level >= level) fprintf(stderr, x); }
-#endif
+/* ERROR is used like printf(). */
 
-/* Used like printf(). */
 #ifdef NDEBUG
 #define ERROR(x...) \
 	{ \
@@ -106,6 +99,7 @@
 #define ABS(x) ((x)>=0?(x):-(x))
 #define SQ(x) ((x)*(x))
 
+#include "debug.h"
 #include "mem.h"
 #include "types.h"
 #include "endian.h"

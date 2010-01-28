@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
  */
 
 #include "../include/common.h"
+
+#define DEBUG(level, x...) DEBUGX(DBG_GFX, level, x)
 
 int nmaterials;
 struct material *materials;
@@ -80,7 +82,7 @@ static int valid_normal(vector *v)
 
 static void draw_basis(void)
 {
-	DEBUG(10, "Drawing basis\n");
+	DEBUG(3, "Drawing basis\n");
 	glBegin(GL_LINES);
 	glVertex3i(-32768, 0, 0);
 	glVertex3i(32767, 0, 0);
@@ -96,7 +98,7 @@ static void draw_normals(const struct mesh *m)
 {
 	int i, j;
 
-	DEBUG(10, "Drawing normals for mesh %p\n", m);
+	DEBUG(3, "Drawing normals for mesh %p\n", m);
 	for (i=0; i < m->nfaces; i++)
 	{
 		if (valid_normal(&m->faces[i].normal))
@@ -124,7 +126,7 @@ static void render_setmaterial(const struct material *m)
 {
 	float f[4];
 
-	DEBUG(7, "gfx_sdl: render_setmaterial(%p)\n", m);
+	DEBUG(3, "gfx_sdl: render_setmaterial(%p)\n", m);
 	if (m->flags & MATERIAL_FULL)
 	{
 		f[3] = m->full.alpha;
@@ -153,15 +155,15 @@ static void draw_mesh(const struct mesh *m)
 {
 	int i, j;
 
-	DEBUG(9, "Drawing mesh %p\n", m);
+	DEBUG(3, "Drawing mesh %p\n", m);
 	if (m->gfx_handle >= 0)
 	{
-		DEBUG(9, "Using display list %d for mesh %p\n", m->gfx_handle, m);
+		DEBUG(3, "Using display list %d for mesh %p\n", m->gfx_handle, m);
 		glCallList(m->gfx_handle);
 	}
 	else
 	{
-		DEBUG(9, "Mesh %p has no display list, drawing\n", m);
+		DEBUG(3, "Mesh %p has no display list, drawing\n", m);
 		for (i=0; i < m->nfaces; i++)
 		{
 			if (m->faces[i].texture >= 0)
@@ -205,7 +207,7 @@ static void draw_mesh(const struct mesh *m)
 			}
 			glEnd();
 		}
-		DEBUG(9, "%d faces processed\n", i);
+		DEBUG(3, "%d faces processed\n", i);
 		if (config_get_int("drawnormals"))
 			draw_normals(m);
 	}
@@ -216,7 +218,7 @@ static void draw_model(const struct model *m)
 	int translated;
 	int i;
 
-	DEBUG(9, "Drawing model %p\n", m);
+	DEBUG(3, "Drawing model %p\n", m);
 	for (i=0; i < m->ngroups; i++)
 	{
 		if (!vec_isnull(&m->offsets[i]))
@@ -231,7 +233,7 @@ static void draw_model(const struct model *m)
 				,m->offsets[i].y
 				,m->offsets[i].z
 			);
-			DEBUG(10, "Offset for model group %d is (%g, %g, %g)\n",
+			DEBUG(3, "Offset for model group %d is (%g, %g, %g)\n",
 				i, m->offsets[i].x, m->offsets[i].y, m->offsets[i].z
 			);
 		}
@@ -239,7 +241,7 @@ static void draw_model(const struct model *m)
 		if (translated)
 			glPopMatrix();
 	}
-	DEBUG(9, "%d model groups processed\n", i);
+	DEBUG(3, "%d model groups processed\n", i);
 }
 
 static int init(void)
@@ -247,7 +249,7 @@ static int init(void)
 	char drv_name[64];
 	int flags;
 
-	DEBUG(3, "gfx_sdl: init()\n");
+	DEBUG(1, "gfx_sdl: init()\n");
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
 	{
 		ERROR("SDL_Init(): %s", SDL_GetError());
@@ -259,7 +261,7 @@ static int init(void)
 	set_screen(0, 0, 0, flags);
 	if (!screen)
 		return 1;
-	DEBUG(2, "gfx_sdl: using video driver \"%s\"\n",
+	DEBUG(1, "gfx_sdl: using video driver \"%s\"\n",
 		SDL_VideoDriverName(drv_name, 64));
 	memset(&scene, 0, sizeof(struct gfx_scene));
 	init_materials();
@@ -269,7 +271,7 @@ static int init(void)
 
 static void shutdown(void)
 {
-	DEBUG(3, "gfx_sdl: shutdown()\n");
+	DEBUG(1, "gfx_sdl: shutdown()\n");
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
@@ -279,7 +281,7 @@ static int set_screen(int width, int height, int bpp, int flags)
 	int sdlflags;
 	float gamma;
 
-	DEBUG(3, "gfx_sdl: set_screen(%d, %d, %d)\n", width, height, bpp);
+	DEBUG(1, "gfx_sdl: set_screen(%d, %d, %d)\n", width, height, bpp);
 	if (width <= 0 || height <= 0 || bpp <= 0)
 	{
 		width = config_get_int("width");
@@ -312,7 +314,7 @@ static int set_screen(int width, int height, int bpp, int flags)
 		ERROR("invalid bpp value %d (must be 16, 24, or 32)", bpp);
 		return 1;
 	}
-	DEBUG(3, "gfx_sdl: trying %dx%dx%d\n", width, height, bpp);
+	DEBUG(1, "gfx_sdl: trying %dx%dx%d\n", width, height, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, config_get_int("vsync") != 0);
 	sdlflags = SDL_ANYFORMAT | SDL_OPENGL;
@@ -325,11 +327,11 @@ static int set_screen(int width, int height, int bpp, int flags)
 		return 1;
 	}
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
-	DEBUG(3, "gfx_sdl: screen was set to %dx%dx%d\n", width, height, bpp);
+	DEBUG(1, "gfx_sdl: screen was set to %dx%dx%d\n", width, height, bpp);
 	gamma = config_get_float("gamma");
 	if (gamma >= 0.001f)
 	{
-		DEBUG(3, "gfx_sdl: setting screen gamma value to %g\n", gamma);
+		DEBUG(1, "gfx_sdl: setting screen gamma value to %g\n", gamma);
 		SDL_SetGamma(gamma, gamma, gamma);
 	}
 	SDL_WM_SetCaption("6dof", "6dof");
@@ -349,7 +351,7 @@ static int set_screen(int width, int height, int bpp, int flags)
 
 static void set_title(const char *title, const char *icon)
 {
-	DEBUG(5, "gfx_sdl: set_title(\"%s\", \"%s\")\n", title, icon);
+	DEBUG(3, "gfx_sdl: set_title(\"%s\", \"%s\")\n", title, icon);
 	SDL_WM_SetCaption(title, icon);
 }
 
@@ -358,7 +360,7 @@ static int prepare_mesh(const struct mesh *m)
 	int id;
 
 	id = glGenLists(1);
-	DEBUG(5, "gfx_sdl: prepare_mesh(%p) = %d\n", m, id);
+	DEBUG(3, "gfx_sdl: prepare_mesh(%p) = %d\n", m, id);
 	glNewList(id, GL_COMPILE);
 	draw_mesh(m);
 	glEndList();
@@ -368,7 +370,7 @@ static int prepare_mesh(const struct mesh *m)
 
 static void release_mesh(int id)
 {
-	DEBUG(5, "gfx_sdl: release_mesh(%d)\n", id);
+	DEBUG(3, "gfx_sdl: release_mesh(%d)\n", id);
 	glDeleteLists(id, 1);
 }
 
@@ -377,8 +379,8 @@ static int prepare_texture(const struct image *img)
 	int id;
 
 	glGenTextures(1, (GLuint *) &id);
-	DEBUG(5, "gfx_sdl: prepare_texture(%p) = %d\n", img, id);
-	DEBUG(5, "width = %d, height = %d\n", img->width, img->height);
+	DEBUG(3, "gfx_sdl: prepare_texture(%p) = %d\n", img, id);
+	DEBUG(3, "width = %d, height = %d\n", img->width, img->height);
 	glBindTexture(GL_TEXTURE_2D, (GLuint) id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -392,13 +394,13 @@ static int prepare_texture(const struct image *img)
 
 static void release_texture(int id)
 {
-	DEBUG(5, "gfx_sdl: release_texture(%d)\n", id);
+	DEBUG(3, "gfx_sdl: release_texture(%d)\n", id);
 	glDeleteTextures(1, (GLuint *) &id);
 }
 
 static int prepare_material(const struct material *m)
 {
-	DEBUG(5, "gfx_sdl: prepare_material(%p) = %d\n", m, nmaterials);
+	DEBUG(3, "gfx_sdl: prepare_material(%p) = %d\n", m, nmaterials);
 	REALLOC(materials, nmaterials + 1);
 	MEMCPY(&materials[nmaterials], m, 1);
 	nmaterials++;
@@ -407,20 +409,20 @@ static int prepare_material(const struct material *m)
 
 static void release_material(int id)
 {
-	DEBUG(5, "gfx_sdl: release_material(%d)\n", id);
+	DEBUG(3, "gfx_sdl: release_material(%d)\n", id);
 	nmaterials--;
 	REALLOC(materials, nmaterials);
 }
 
 static void set_level(struct model *m)
 {
-	DEBUG(4, "gfx_sdl: set_level(%p)\n", m);
+	DEBUG(2, "gfx_sdl: set_level(%p)\n", m);
 	scene.level = m;
 }
 
 static struct gfx_scene *get_scene(void)
 {
-	DEBUG(10, "gfx_sdl: get_scene() = %p\n", &scene);
+	DEBUG(3, "gfx_sdl: get_scene() = %p\n", &scene);
 	return &scene;
 }
 
@@ -499,7 +501,7 @@ static void render_setview(int mode)
 	glFrustum(left, right, bottom, top, 1.0f, 32767.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	DEBUG(9, "cam_pos = (%g, %g, %g)\ncam_fvec = (%g, %g, %g)\ncam_uvec = (%g, %g, %g)\n"
+	DEBUG(3, "cam_pos = (%g, %g, %g)\ncam_fvec = (%g, %g, %g)\ncam_uvec = (%g, %g, %g)\n"
 		, cam_pos.x, cam_pos.y, cam_pos.z
 		, cam_fvec.x, cam_fvec.y, cam_fvec.z
 		, cam_uvec.x, cam_uvec.y, cam_uvec.z
@@ -529,7 +531,7 @@ static void render_draw(void)
 
 static int render(void)
 {
-	DEBUG(8, "gfx_sdl: render()\n");
+	DEBUG(3, "gfx_sdl: render()\n");
 	render_prepare();
 	glClearColor(0.0f, 0.0f, 0.00f, 0.0f);
 	glClearDepth(1.0f);

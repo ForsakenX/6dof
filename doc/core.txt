@@ -15,13 +15,15 @@ together. `The Lua environment`_ has its own section further below.
 Core project files
 ------------------
 * ``common.h`` includes all header files used and defines a couple of
-  macros used throughout the project, notably DEBUG and ERROR.
+  macros used throughout the project.
 
 * ``config.c`` and ``config.h`` define the functions for retrieving
   configuration values in C code.
 
 * ``config.lua`` sets up the configuration table and loads it with
   values from ``defaults.lua``.
+
+* ``debug.h`` defines the debug macros.
 
 * ``defaults.lua`` defines options and their initial default values.
 
@@ -79,63 +81,54 @@ configuration values and the main game loop is entered immediately.
 
 Debug information
 -----------------
-The game has a simple numbered debug level system. Debug information
-is produced throughout the game's code by calling the DEBUG() macro,
-which can be used like the ``printf`` function but preceded with a
-debug level. There are 11 debug levels, ranging from 0 to 10. 0 means
-no debug information, printing only warnings and errors. There are no
-strict rules dictating what debug information should have which level,
-but here are some guidelines with examples:
+The game has two debugging parameters: channel mask and level.
+Channels separate different types of debug info and can be enabled or
+disabled in debugging output. The debug level specifies the detail of
+information that is printed.
 
-* 1 - global initialization steps::
+``debug.h`` defines a ``DEBUGX`` macro that the rest of the code can
+use to print debugging messages::
+
+    DEBUGX(type, level, format, ...)
+
+where ``format`` and any remaining arguments are the same as for
+``printf``. Typically, a module will define a ``DEBUG`` macro for
+itself that calls ``DEBUGX`` with a default debug channel. For
+example::
+
+    #define DEBUG(level, x...) DEBUGX(DBG_AUDIO, level, x)
+    /* ... */
+    DEBUG(1, "Initializing audio subsystem\n");
+
+There are 3 debug levels:
+
+* 1 - initialization and shutdown information; major changes in state
+  such as starting a new game::
 
     DEBUG(1, "Initializing graphics subsystem\n");
-
-* 2 - modules initialized and configuration-dependent initialization
-  steps::
-
-    DEBUG(2, "Using SDL for graphics\n");
-    DEBUG(2, "gfx_sdl: using video driver \"%s\"\n",
+    DEBUG(1, "Using SDL for graphics\n");
+    DEBUG(1, "gfx_sdl: using video driver \"%s\"\n",
       SDL_VideoDriverName(drv_name, 64));
-    DEBUG(2, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
+    DEBUG(1, "Found joystick %d: \"%s\"\n", i+1, SDL_JoystickName(i));
 
-* 3 - initialization/shutdown-related subsystem functions called::
+* 2 - information about uncommon events and the actions triggered by
+  them. As a guideline, take 'uncommon' here to mean 'not at least
+  once every frame'::
 
-    DEBUG(3, "audio_null: init()\n");
-    DEBUG(3, "gfx_sdl: setting screen mode to %dx%dx%d\n", width, height, bpp);
-    (in Lua)  DEBUG(3, "Loading configuration from "..name)
-
-* 4 - data file loading and incidentally used or mid-level
-  subsystem functions::
-
-    DEBUG(4, "audio_null: load_sound(%s)\n", filename);
-    (in Lua)  DEBUG(4, ('Header says %d verts, %d cubes'):
+    DEBUG(2, "audio_null: load_sound(%s)\n", filename);
+    (in Lua)  DEBUG(2, ('Header says %d verts, %d cubes'):
                 format(nverts, ncubes))
-
-* 5 - commonly used (but not necessarily every frame) or low-level
-  subsystem functions::
-
-    DEBUG(5, "audio_null: play_sound(%d, %d, %.3f, %#x)\n",
+    DEBUG(2, "audio_null: play_sound(%d, %d, %.3f, %#x)\n",
       soundno, volume, panning, flags);
-    DEBUG(5, "Calling C function for input event %d\n", event.id);
+    DEBUG(2, "Calling C function for input event %d\n", event.id);
+    DEBUG(2, "Key press event, id == %d\n", event->id);
 
-* 6-10 - details::
+* 3 - information about common events (triggered at least once every
+  frame) and functions typically invoked in a loop::
 
-    DEBUG(6, "Key press event, id == %d\n", event->id);
-    DEBUG(6, "init_lua_table(): input module initialized (%d inputs)\n",
-      num_inputs);
-    (in Lua)  DEBUG(6, 'Reading subobject '..sobj_num)
-    DEBUG(7, "%s:%d: reading %d bytes\n", __FILE__, __LINE__, n);
-    DEBUG(9, "binread(\"%s\", ...)\n", fmt);
-
-* 8-10 - functions invoked at least once every frame::
-
-    DEBUG(8, "Processing input events\n");
-    DEBUG(8, "gfx_sdl: render()\n");
-
-* 10 - trivial functions::
-
-    DEBUG(10, "gfx_sdl: get_scene() = %#010tx\n", &scene);
+    DEBUG(3, "%s:%d: reading %d bytes\n", __FILE__, __LINE__, n);
+    DEBUG(3, "Processing input events\n");
+    DEBUG(3, "gfx_sdl: render()\n");
 
 Global configuration system
 ---------------------------

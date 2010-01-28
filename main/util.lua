@@ -1,6 +1,6 @@
 -- vim:set sw=4 ts=4:
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,10 +17,29 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
-function DEBUG(level, ...)
-	if type(debuglevel) == 'function' and debuglevel() >= level then
-		print(string.format(...))
-	end
+-- Keep these in sync with include/debug.h
+debugchan = {
+	audio = 0;
+	general = 1;
+	gfx = 2;
+	input = 3;
+	io = 4;
+	level = 5;
+	lua = 6;
+	mem = 7;
+}
+
+DBG_AUDIO = debugchan.audio
+DBG_GENERAL = debugchan.general
+DBG_GFX = debugchan.gfx
+DBG_INPUT = debugchan.input
+DBG_IO = debugchan.io
+DBG_LEVEL = debugchan.level
+DBG_LUA = debugchan.lua
+DBG_MEM = debugchan.mem
+
+local function DEBUG(level, str)
+	DEBUGX(DBG_GENERAL, level, str)
 end
 
 function warn(str)
@@ -52,7 +71,7 @@ end
 
 function screenshot()
 	fname = 'scrn-' .. os.date('%Y%m%d-%H%M%S') .. '.ppm'
-	DEBUG(4, 'Saving screenshot to ' .. fname)
+	DEBUG(2, 'Saving screenshot to ' .. fname)
 	local image = gfx.readpixels(0, 0, config.width, config.height)
 	local f = io.open(fname, 'w')
 	f:write(("P6\n%d %d\n255\n"):format(image.width, image.height))

@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #define MALLOC(type, num) \
 	({ \
 		void *_p; \
-		DEBUG(10, "malloc(%zd * %zd /* %s */) = ", \
+		DEBUGX(DBG_MEM, 3, "malloc(%zd * %zd /* %s */) = ", \
 			(size_t) (num), sizeof(type), #type \
 		); \
 		_p = malloc((size_t) (num) * sizeof(type)); \
@@ -35,14 +35,14 @@
 			ERROR("malloc(%zd * sizeof(%s)) failed", (size_t) (num), #type); \
 			luaL_error(L1, "malloc() failed"); \
 		} \
-		DEBUG(10, "%p\n", _p); \
+		DEBUGX(DBG_MEM, 3, "%p\n", _p); \
 		_p; \
 	})
 
 #define CALLOC(type, num) \
 	({ \
 		void *_p; \
-		DEBUG(10, "calloc(%zd, %zd /* %s */) = ", \
+		DEBUGX(DBG_MEM, 3, "calloc(%zd, %zd /* %s */) = ", \
 			(size_t) (num), sizeof(type), #type \
 		); \
 		_p = calloc((size_t) (num), sizeof(type)); \
@@ -51,7 +51,7 @@
 			ERROR("calloc(%zd, sizeof(%s)) failed", (size_t) (num), #type); \
 			luaL_error(L1, "calloc() failed"); \
 		} \
-		DEBUG(10, "%p\n", _p); \
+		DEBUGX(DBG_MEM, 3, "%p\n", _p); \
 		_p; \
 	})
 
@@ -63,13 +63,13 @@
 /* realloc() is typically used to allocate space for a list or
  * resize a list to some number of elements. */
 #define REALLOC(list, num) \
-	DEBUG(10, "realloc(%s /* %p */, %zd * %zd) = ", \
+	DEBUGX(DBG_MEM, 3, "realloc(%s /* %p */, %zd * %zd) = ", \
 		#list, list, (size_t) (num), sizeof(*(list)) \
 	); \
 	if ((num) > 0) \
 	{ \
 		list = realloc(list, (size_t) (num) * sizeof(*(list))); \
-		DEBUG(10, "%p\n", list); \
+		DEBUGX(DBG_MEM, 3, "%p\n", list); \
 		if (!list) \
 		{ \
 			ERROR("realloc(%s, %zd * %zd) failed", \
@@ -87,7 +87,7 @@
 #define MEMCPY(dest, src, nelem) \
 	({ \
 		void *_p; \
-		DEBUG(10, "memcpy(%p, %p, %zd * %zd)\n", \
+		DEBUGX(DBG_MEM, 3, "memcpy(%p, %p, %zd * %zd)\n", \
 			dest, src, (size_t) (nelem), sizeof(*(dest)) \
 		); \
 		_p = \
@@ -102,7 +102,7 @@
 /* memset() with type inference (takes element count instead of
  * byte count. */
 #define MEMSET(mem, value, n) \
-	DEBUG(10, "memset(%p, %d, %zd * %zd)\n", \
+	DEBUGX(DBG_MEM, 3, "memset(%p, %d, %zd * %zd)\n", \
 		mem, value, (size_t) (n), sizeof(*(mem)) \
 	); \
 	memset(mem, value, (size_t) (n) * sizeof(*(mem)));
@@ -110,7 +110,7 @@
 #define FREE(x) \
 	if (x) \
 	{ \
-		DEBUG(10, "free(%p)\n", x); \
+		DEBUGX(DBG_MEM, 3, "free(%p)\n", x); \
 		free(x); \
 		(x) = NULL; \
 	} \

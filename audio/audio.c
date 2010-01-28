@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
  */
 
 #include "../include/common.h"
+
+#define DEBUG(level, x...) DEBUGX(DBG_AUDIO, level, x)
 
 struct audio_driver *audio;
 
@@ -174,10 +176,10 @@ int audio_init(void)
 
 	DEBUG(1, "Initializing audio subsystem\n");
 #ifdef AUDIO_SDLMIXER
-	DEBUG(2, "Using SDL_mixer for audio\n");
+	DEBUG(1, "Using SDL_mixer for audio\n");
 	audio = &audio_sdlmixer;
 #else
-	DEBUG(2, "Using dummy driver for audio (silence)\n");
+	DEBUG(1, "Using dummy driver for audio (silence)\n");
 	audio = &audio_null;
 #endif
 	ret = audio->init();

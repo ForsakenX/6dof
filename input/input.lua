@@ -1,6 +1,6 @@
 -- vim:set sw=4 ts=4:
 --
--- Copyright (C) 2009  Pim Goossens
+-- Copyright (C) 2010  Pim Goossens
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,13 +17,17 @@
 -- to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 -- Boston, MA 02110-1301 USA.
 
+local function DEBUG(level, str)
+	DEBUGX(DBG_INPUT, level, str)
+end
+
 function input.bind(name, func)
 	local id = input.id[name]
 	if id ~= nil then
 		if func ~= nil then
-			DEBUG(5, 'Input "'..name..'" ('..id..') bound to function')
+			DEBUG(2, 'Input "'..name..'" ('..id..') bound to function')
 		else
-			DEBUG(5, 'Input "'..name..'" ('..id..') unbound')
+			DEBUG(2, 'Input "'..name..'" ('..id..') unbound')
 		end
 		input.bindings[id] = func
 	else

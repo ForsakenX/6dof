@@ -1,6 +1,6 @@
 /* vim:set sw=4 ts=4:
  *
- * Copyright (C) 2009  Pim Goossens
+ * Copyright (C) 2010  Pim Goossens
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,15 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#define DEBUGX(x...)
 #define DEBUG(x...)
 #define luafuncs_register luaopen_luafuncs
 
 #else /* !STANDALONE */
 
 #include "../include/common.h"
+
+#define DEBUG(level, x...) DEBUGX(DBG_IO, level, x)
 
 #endif /* !STANDALONE */
 
@@ -233,7 +236,7 @@ static int unpack(lua_State *L)
 		return luaL_error(L, "expected 2 arguments for binread function (got %d)", n);
 	fmt = luaL_checkstring(L, 1);
 	str = luaL_checklstring(L, 2, &len);
-	DEBUG(9, "unpack(\"%s\", ...)\n", fmt);
+	DEBUG(3, "unpack(\"%s\", ...)\n", fmt);
 	lua_settop(L, 0);
 	n = 0;
 	for (; *fmt; fmt++)
@@ -383,7 +386,7 @@ static int unpack(lua_State *L)
 	_c; \
 })
 #define READ(n) \
-	DEBUG(7, "%s:%d: reading %d bytes\n", __FILE__, __LINE__, n); \
+	DEBUG(3, "%s:%d: reading %d bytes\n", __FILE__, __LINE__, n); \
 	if (fread(buf, 1, n, f) < n) \
 		return luaL_error(L, "unexpected EOF"); \
 	luaL_addlstring(&lbuf, buf, n);
@@ -404,7 +407,7 @@ static int binread(lua_State *L)
 	f = *fp;
 	fmt = luaL_checkstring(L, 2);
 	fmt_save = fmt;
-	DEBUG(9, "binread(\"%s\", ...)\n", fmt);
+	DEBUG(3, "binread(\"%s\", ...)\n", fmt);
 	luaL_buffinit(L, &lbuf);
 	for (; *fmt; fmt++)
 	{
