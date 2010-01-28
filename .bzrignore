@@ -1,3 +1,3 @@
 *.h.gch
 6dof
-README.html
+doc/**/*.html
