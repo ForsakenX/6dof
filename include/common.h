@@ -56,9 +56,7 @@
 		if (_err) return _err; \
 	}
 
-/* INFO and ERROR are used like printf(). */
-
-#define INFO(x...) fprintf(stderr, x)
+/* ERROR is used like printf(). */
 
 #ifdef NDEBUG
 #define ERROR(x...) \
