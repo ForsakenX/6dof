@@ -59,9 +59,9 @@ static int lua_init(int argc, char *argv[])
 static int init(int argc, char *argv[])
 {
 	CHECK(lua_create());
+	CHECK(luafuncs_register(L1));
 	debug_init();
 	CHECK(lua_init(argc, argv));
-	CHECK(luafuncs_register(L1));
 #ifdef SDL
 	CHECK(SDL_Init(0));
 #endif

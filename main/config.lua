@@ -61,6 +61,21 @@ local function config_checkvalue(k, v)
 	return nil
 end
 
+function debugmask_fromstr(s)
+	local n = 0
+	for ch in s:gmatch("(%l+)") do
+		if debugchan[ch] == nil then
+			error(ch .. ': no such debug channel')
+		end
+		n = n + shl(4, debugchan[ch])
+	end
+	return n
+end
+
+-- TODO (maybe)
+-- function debugmask_tostr(n)
+-- end
+
 setmetatable(config, {
 	__index = function(t, key)
 		if key == 'debug' then
@@ -81,6 +96,12 @@ setmetatable(config, {
 			if err == nil then
 				if key == 'debug' then
 					debuglevel(value)
+				elseif key == 'debuglvl' then
+					-- Ugliese for (debug level & 3) = value
+					debuglevel(bitor(value, bitand(debuglevel(), bitnot(3))))
+				elseif key == 'debugmask' then
+					-- (debug level & ~3) = debugmask_fromstr(value)
+					debuglevel(bitor(debugmask_fromstr(value), bitand(debuglevel(), 3)))
 				else
 					DEBUG(2, "Setting option `"..key.."' to `"..tostring(value).."'")
 					rawset(rawget(t, '_config'), key, value)
