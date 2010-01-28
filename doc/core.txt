@@ -181,7 +181,7 @@ Later on, an event system may be introduced that can notify modules of
 changes in the configuration, so they can use local variables to hold
 parameters and don't have to repeatedly poll the config table.
 
-.. _The Lua environment: lua.txt
-.. _Audio: audio.txt
-.. _Graphics: gfx.txt
-.. _Input: input.txt
+.. _The Lua environment: lua.html
+.. _Audio: audio.html
+.. _Graphics: gfx.html
+.. _Input: input.html

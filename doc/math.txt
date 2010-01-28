@@ -30,3 +30,5 @@ parameter to equal one or both of their source parameters::
 `The Lua environment`_ is also enhanced with some vector functions.
 See below for some examples. Quaternion and matrix functionality may
 follow later on.
+
+.. _The Lua environment: lua.html

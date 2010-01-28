@@ -17,11 +17,15 @@ manipulating the game world.
 Currently, the Lua environment is just used for configuration, input
 binding, and generating level geometry data.
 
+.. _Lua: http://www.lua.org/
+
 Configuration
 -------------
 The ``config`` table stores the configuration values. See the `Global
 configuration system`_ section above for a more detailed description
 of the configuration system.
+
+.. _Global configuration system: core.html#global-configuration-system
 
 Controls
 --------
@@ -35,6 +39,8 @@ are provided to add and remove bindings. An example of how to use
 ``input.bind`` has already been given in the Input_ section above.
 Additional examples can be found in the ``bindings.lua`` file, which
 is read and executed at the end of the initialization process.
+
+.. _Input: input.html
 
 Levels
 ------
@@ -194,3 +200,5 @@ category:
   handles, for example::
 
     local f = binfile(io.open(config.lvlfile, 'rb'))
+
+.. _Debug information: core.html#debug-information

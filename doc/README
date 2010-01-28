@@ -45,8 +45,8 @@ Layout
 The core_ of the project consists of a set of macros and types, and
 a `Lua environment`_ used to complement the C core.
 
-.. _Core: core.txt
-.. _Lua environment: lua.txt
+.. _Core: core.html
+.. _Lua environment: lua.html
 
 Modules and components
 ======================
@@ -70,11 +70,12 @@ Each of the modules are documented separately:
   * Graphics_
   * Time_
 
-.. _Audio: audio.txt
-.. _Controls and input devices: input.txt
-.. _Data I/O: io.txt
-.. _Graphics: gfx.txt
-.. _Time: time.txt
+.. _SDL: http://www.libsdl.org/
+.. _Audio: audio.html
+.. _Controls and input devices: input.html
+.. _Data I/O: io.html
+.. _Graphics: gfx.html
+.. _Time: time.html
 
 Copyright
 =========
