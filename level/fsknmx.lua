@@ -146,9 +146,9 @@ for i = 1, f:binread('h') do
 end
 -- For each group...
 for i = 1, f:binread('h') do
-	local verts_in_this_group = 0
 	-- For each execlist...
 	for i = 1, f:binread('h') do
+		local verts_in_this_group = 0
 		-- Read and forget exec_type
 		f:binread('i')
 		-- For each vertex...
@@ -168,8 +168,8 @@ for i = 1, f:binread('h') do
 				table.insert(triangles, face({v0, v1, v2}, normal, textures[tnum+1]))
 			end
 		end
+		vert_offset = vert_offset + verts_in_this_group
 	end
-	vert_offset = vert_offset + verts_in_this_group
 end
 f:close()
 
